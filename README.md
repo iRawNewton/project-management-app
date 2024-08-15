@@ -104,3 +104,114 @@
 ## Project History:
 * A complete history of changes, updates, and remarks for every project and sub-project.
 * Admins and Managers can view all historical changes, including task progress, communication logs, and payment records.
+
+----
+****
+
+## Database Structure (Firebase Firestore)
+
+1. Users Collection
+   ```
+   users (Collection)
+   └── userId (Document)
+         ├── name: String
+         ├── email: String
+         ├── role: String  // (admin, manager, client, developer)
+         ├── profilePictureUrl: String  // Profile picture
+         ├── assignedProjects: [projectId]  // List of project IDs assigned to the user
+         ├── emergencyTasks: [taskId]  // List of emergency task IDs for the developer
+         ├── notifications: [notificationId]  // Notification management
+         ├── firstLogin: Timestamp  // Timestamp of the user's first login (null if not logged in)
+         ├── lastLogin: Timestamp  // Tracks the user's last login activity
+         ├── createdAt: Timestamp
+         └── updatedAt: Timestamp
+   ```
+
+2. Projects Collection
+   ```
+   projects (Collection)
+   └── projectId (Document)
+         ├── projectName: String
+         ├── description: String
+         ├── managerId: String  // Manager in charge
+         ├── clientId: String  // Client related to the project
+         ├── developers: [userId]  // List of developer IDs assigned to the project
+         ├── subProjects: [subProjectId]  // List of sub-project IDs (optional)
+         ├── progress: Number  // Overall project progress (0 to 100)
+         ├── startDate: Timestamp
+         ├── endDate: Timestamp
+         ├── paymentModel: String  // (one-time, recurring)
+         ├── remarks: [remarkId]  // List of remark IDs for developer updates
+         ├── tasks: [taskId]  // Task breakdown for the project
+         ├── projectHistory: [historyId]  // Historical changes for the project
+         ├── createdAt: Timestamp
+         └── updatedAt: Timestamp 
+   ```
+   
+3. Sub-Projects Collection (Linked to Projects)
+   ```
+   subProjects (Collection)
+   └── subProjectId (Document)
+         ├── parentProjectId: String  // Reference to the parent project
+         ├── subProjectName: String
+         ├── developers: [userId]  // List of developers assigned to the sub-project
+         ├── progress: Number  // Sub-project progress
+         ├── startDate: Timestamp
+         ├── endDate: Timestamp
+         ├── tasks: [taskId]  // Task breakdown for the sub-project
+         ├── remarks: [remarkId]  // Developer remarks specific to this sub-project
+         ├── createdAt: Timestamp
+         └── updatedAt: Timestamp
+   ```
+   
+4. Tasks Collection
+   ```
+   tasks (Collection)
+   └── taskId (Document)
+         ├── taskName: String
+         ├── description: String
+         ├── assignedTo: String  // Developer ID assigned to the task
+         ├── projectId: String  // Linked project (optional for emergency tasks)
+         ├── subProjectId: String  // Linked sub-project (optional)
+         ├── emergency: Boolean  // True if an emergency task
+         ├── progress: Number  // Task progress (0 to 100)
+         ├── dueDate: Timestamp
+         ├── createdAt: Timestamp
+         └── updatedAt: Timestamp
+   ```
+   
+5. Remarks Collection
+   ```
+   remarks (Collection)
+   └── remarkId (Document)
+         ├── projectId: String  // The project to which the remark is related
+         ├── subProjectId: String  // Optional for sub-project-specific remarks
+         ├── userId: String  // The ID of the user who made the remark (Client, Manager, Developer)
+         ├── userRole: String  // Role of the user (client, manager, developer)
+         ├── remarkText: String  // The actual remark or update
+         ├── createdAt: Timestamp  // When the remark was made
+   ```
+   
+6. Notification Collection
+   ```
+   notifications (Collection)
+   └── notificationId (Document)
+         ├── userId: String  // Who receives the notification
+         ├── message: String
+         ├── type: String  // (taskAssigned, remarkAdded, etc.)
+         ├── read: Boolean
+         ├── createdAt: Timestamp
+   ```
+   
+7. Project History Collection
+   ```
+   projectHistory (Collection)
+   └── historyId (Document)
+         ├── projectId: String
+         ├── changeType: String  // (taskAdded, remarkAdded, progressUpdated, etc.)
+         ├── changeDescription: String
+         ├── userId: String  // Who made the change
+         ├── createdAt: Timestamp
+   ```
+
+
