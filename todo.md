@@ -9,3 +9,6 @@ field can be like:
 1. site link
 2. user id
 3. password
+
+
+add dob of developer. when it is developer bday show notification to all users. use marquee package here. and confetti on bday devs page
