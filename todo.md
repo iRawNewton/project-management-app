@@ -5,3 +5,7 @@ project collection should have credentials field which will store username and p
 
 it also should have link option for finding it and it should be list as there can be multiple links
 
+field can be like: 
+1. site link
+2. user id
+3. password
