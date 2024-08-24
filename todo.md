@@ -14,3 +14,5 @@ field can be like:
 add dob of developer. when it is developer bday show notification to all users. use marquee package here. and confetti on bday devs page
 
 All managers stats will be in carousel view
+
+Get device ID to block users from login, and also block users.
