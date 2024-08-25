@@ -2,6 +2,7 @@
 ### Users Collection
 
 ```plaintext
+
 users (Collection)
 └── userId (Document)
       ├── name: String
@@ -11,12 +12,16 @@ users (Collection)
       ├── assignedProjects: [projectId]  // List of project IDs assigned to the user
       ├── emergencyTasks: [taskId]  // List of emergency task IDs for the developer
       ├── notifications: [notificationId]  // Notification management
+      ├── phone: String  // User's phone number
+      ├── whatsappNumber: String  // User's WhatsApp number
+      ├── password: String  // Encrypted user password
       ├── firstLogin: Timestamp  // Timestamp of the user's first login (null if not logged in)
       ├── lastLogin: Timestamp  // Tracks the user's last login activity
       ├── dateOfBirth: Timestamp  // Developer's date of birth
       ├── createdAt: Timestamp
       └── updatedAt: Timestamp
 ```
+
 
 ### Projects Collection
 
