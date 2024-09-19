@@ -81,15 +81,30 @@ tags (Collection)
 tasks (Collection)
 └── taskId (Document)
       ├── taskName: String
-      ├── description: String
+      ├── description: String  // Task description
       ├── assignedTo: String  // Developer ID assigned to the task
       ├── projectId: String  // Linked project (optional for emergency tasks)
       ├── subProjectId: String  // Linked sub-project (optional)
       ├── emergency: Boolean  // True if an emergency task
       ├── progress: Number  // Task progress (0 to 100)
+      ├── status: String  // Task status (Not Started, Doing, Done)
       ├── dueDate: Timestamp
+      ├── remarks: [taskRemarkId]  // List of remark IDs for the task (optional)
       ├── createdAt: Timestamp
       └── updatedAt: Timestamp
+```
+
+### Task Remarks Collection
+
+```plaintext
+taskRemarks (Collection)
+└── taskRemarkId (Document)
+      ├── taskId: String  // Reference to the task
+      ├── userId: String  // Developer who added the remark
+      ├── userRole: String  // Role of the user (developer, manager)
+      ├── remarkText: String  // Detailed remark or update on the task
+      ├── statusUpdate: String  // Optional task status update (Not Started, Doing, Done)
+      ├── createdAt: Timestamp
 ```
 
 ### Remarks Collection
