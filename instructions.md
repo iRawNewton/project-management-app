@@ -95,4 +95,69 @@ Text(
 Always test your UI on multiple screen sizes and devices using the Flutter Device Preview package or emulators/simulators.
 
 ### Conclusion
-By employing these strategies, you can create a responsive and adaptive UI in Flutter that looks great on all devices. The key is to test and iterate to ensure a smooth user experience across different screen sizes.
+By employing these strategies, you can create a responsive and adaptive UI in Flutter that looks great on all devices. The key is to test and iterate to ensure a smooth user experience across different screen 
+
+
+In Flutter, you can detect whether your app is running in a web browser or on a mobile device by using the `kIsWeb` constant and the `Platform` class. Here’s how you can do it:
+
+### 1. **Using `kIsWeb`**
+The `kIsWeb` constant from the `flutter/foundation.dart` library can help you determine if the app is running in a web environment.
+
+```dart
+import 'package:flutter/foundation.dart';
+
+if (kIsWeb) {
+  // The app is running on a web browser
+} else {
+  // The app is running on a mobile device
+}
+```
+
+### 2. **Using `Platform` for Mobile Detection**
+For mobile devices, you can use the `Platform` class from the `dart:io` library to check if the app is running on iOS or Android.
+
+```dart
+import 'dart:io' show Platform;
+
+if (Platform.isIOS) {
+  // The app is running on iOS
+} else if (Platform.isAndroid) {
+  // The app is running on Android
+}
+```
+
+### 3. **Combining Both**
+You can combine both checks to handle different cases:
+
+```dart
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart';
+
+void detectEnvironment() {
+  if (kIsWeb) {
+    print("Running in a web browser");
+  } else if (Platform.isAndroid) {
+    print("Running on Android");
+  } else if (Platform.isIOS) {
+    print("Running on iOS");
+  } else {
+    print("Running on an unknown platform");
+  }
+}
+```
+
+### 4. **Responsive UI Adjustments**
+Once you detect the environment, you can use this information to adjust your UI or functionality accordingly.
+
+```dart
+Widget build(BuildContext context) {
+  if (kIsWeb) {
+    return WebLayout();
+  } else {
+    return MobileLayout();
+  }
+}
+```
+
+### Conclusion
+By using `kIsWeb` and the `Platform` class, you can effectively detect whether your Flutter app is running in a web browser or on a mobile device, allowing you to tailor the user experience accordingly.sizes.
