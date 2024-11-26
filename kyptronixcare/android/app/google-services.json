@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "871313757635",
+    "project_id": "kyptronixcare",
+    "storage_bucket": "kyptronixcare.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:871313757635:android:1ee4fd66b0d06de0881976",
+        "android_client_info": {
+          "package_name": "com.kyptronix.kyptronixcare"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCNuIHgBLjzZPCCTMzOICJLHF8F47i5HeM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
