@@ -309,6 +309,96 @@ projectHistory (Collection)
       ├── createdAt: Timestamp
 ```
 
+#### Json Structure
+
+```Json
+"projectHistory": [
+  {
+    "eventType": "Project Created",
+    "timestamp": "2024-01-01T09:00:00Z",
+    "userId": "manager123",
+    "details": "Main project created with initial details.",
+    "oldValue": null,
+    "newValue": {
+      "projectName": "Main Project",
+      "startDate": "2024-01-01",
+      "endDate": "2024-06-01",
+      "clientId": "client456"
+    },
+    "relatedEntity": "Main Project",
+    "status": "Active"
+  },
+  {
+    "eventType": "Task Assigned",
+    "timestamp": "2024-01-05T14:30:00Z",
+    "userId": "manager123",
+    "details": "Assigned 'Task 1' to developer 'userId1'.",
+    "oldValue": null,
+    "newValue": {
+      "taskId": "taskId1",
+      "assignedTo": ["userId1"]
+    },
+    "relatedEntity": "Task 1",
+    "status": "In Progress"
+  },
+  {
+    "eventType": "Payment Received",
+    "timestamp": "2024-01-10T12:00:00Z",
+    "userId": "financeDept001",
+    "details": "Payment of $1000 received for the main project.",
+    "oldValue": {
+      "payments": []
+    },
+    "newValue": {
+      "payments": ["paymentId1"]
+    },
+    "relatedEntity": "Payment",
+    "status": "Completed"
+  },
+  {
+    "eventType": "Deadline Extended",
+    "timestamp": "2024-02-01T10:00:00Z",
+    "userId": "manager123",
+    "details": "Extended the deadline for 'Task 1' from '2024-01-15' to '2024-01-20'.",
+    "oldValue": {
+      "dueDate": "2024-01-15"
+    },
+    "newValue": {
+      "dueDate": "2024-01-20"
+    },
+    "relatedEntity": "Task 1",
+    "status": "In Progress"
+  },
+  {
+    "eventType": "Sub-Project Created",
+    "timestamp": "2024-02-01T16:00:00Z",
+    "userId": "manager123",
+    "details": "Created 'Sub Project 1' under 'Main Project'.",
+    "oldValue": null,
+    "newValue": {
+      "projectName": "Sub Project 1",
+      "mainProjectId": "projectId"
+    },
+    "relatedEntity": "Sub Project 1",
+    "status": "Active"
+  },
+  {
+    "eventType": "Remark Added",
+    "timestamp": "2024-02-10T17:30:00Z",
+    "userId": "userId1",
+    "details": "Added a remark to Sub Project 1: 'Task 1 is going well.'",
+    "oldValue": null,
+    "newValue": {
+      "remarkId": "remarkId1",
+      "comment": "Task 1 is going well."
+    },
+    "relatedEntity": "Sub Project 1",
+    "status": "Completed"
+  }
+]
+
+```
+
 ### Site Links Collection (Linked to Projects)
 
 ```plaintext
