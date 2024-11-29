@@ -65,6 +65,33 @@ class AdminCrudDevBloc extends Bloc<AdminCrudDevEvent, AdminCrudDevState> {
     }
   }
 
-  FutureOr<void> _getUserDevEvent(
-      GetUserDevEvent event, Emitter<AdminCrudDevState> emit) {}
+  Future<void> _getUserDevEvent(
+      GetUserDevEvent event, Emitter<AdminCrudDevState> emit) async {
+    emit(AdminCrudDevLoading());
+    try {
+      // Query Firestore for users whose role is one of 'admin', 'projectManager', or 'client'
+      QuerySnapshot querySnapshot = await _firestore.collection('users').where(
+          'role',
+          isNotEqualTo: ['admin', 'projectManager', 'client']).get();
+
+      // Filter out users with these roles
+      List<UserModel> adminUsers = querySnapshot.docs
+          .where((doc) =>
+              !['admin', 'projectManager', 'client'].contains(doc['role']))
+          .map((doc) =>
+              UserModel.fromMap(doc.id, doc.data() as Map<String, dynamic>))
+          .toList();
+
+      // If no users are found, emit an error
+      if (adminUsers.isEmpty) {
+        emit(const AdminCrudDevError('No users found.'));
+        return;
+      }
+
+      // Emit the fetched user data
+      emit(AdminCrudDevUserFetched(adminUsers));
+    } catch (error) {
+      emit(AdminCrudDevError(error.toString()));
+    }
+  }
 }

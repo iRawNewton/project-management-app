@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/widgets/custom_appbar.dart';
+import 'admin_create_project.dart';
+import 'admin_project_view.dart';
+
 class Project {
   final String name;
   final double progress;
@@ -51,29 +55,39 @@ class AdminProjectListview extends StatelessWidget {
         cardTheme: CardTheme(
           elevation: 2,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(12.0),
           ),
         ),
       ),
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Projects'),
-          actions: [
-            IconButton(
-              icon: Icon(Theme.of(context).brightness == Brightness.light
-                  ? Icons.dark_mode
-                  : Icons.light_mode),
-              onPressed: () {
-                // Toggle theme implementation here
-              },
+      child: SafeArea(
+        child: Scaffold(
+          floatingActionButton: FloatingActionButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AdminCreateProject(),
+                ),
+              );
+            },
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            child: const Icon(Icons.add),
+          ),
+          body: SingleChildScrollView(
+            child: Column(
+              children: [
+                const CustomAppbar(title: 'Projects'),
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(16),
+                  itemBuilder: (context, index) =>
+                      ProjectCard(project: sampleProjects[index]),
+                  itemCount: sampleProjects.length,
+                ),
+              ],
             ),
-          ],
-        ),
-        body: ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemBuilder: (context, index) =>
-              ProjectCard(project: sampleProjects[index]),
-          itemCount: sampleProjects.length,
+          ),
         ),
       ),
     );
@@ -130,14 +144,30 @@ class _ProjectCardState extends State<ProjectCard>
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Card(
+    return Container(
       margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        gradient: _isExpanded
+            ? const LinearGradient(
+                colors: [
+                  Color(0xFF296FF9),
+                  Color(0xFF296FF9),
+                  Color(0xFF6717CD),
+                ],
+                begin: AlignmentDirectional.topStart,
+                end: AlignmentDirectional.bottomEnd,
+              )
+            : const LinearGradient(
+                colors: [Color(0xFF296FF9), Color.fromARGB(255, 18, 97, 255)]),
+        borderRadius: BorderRadius.circular(16.0),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Main Project Information
+
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -147,15 +177,17 @@ class _ProjectCardState extends State<ProjectCard>
                     Expanded(
                       child: Text(
                         widget.project.name,
-                        style: theme.textTheme.titleLarge?.copyWith(
+                        style: theme.textTheme.bodyLarge?.copyWith(
                           fontWeight: FontWeight.bold,
+                          fontSize: 20.0,
+                          color: Colors.white,
                         ),
                       ),
                     ),
                     _buildPaymentModelChip(widget.project.paymentModel, theme),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8.0),
                 // Progress Bar
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -165,11 +197,16 @@ class _ProjectCardState extends State<ProjectCard>
                       children: [
                         Text(
                           'Progress',
-                          style: theme.textTheme.bodyMedium,
+                          style: theme.textTheme.bodyLarge!.copyWith(
+                            color: Colors.white70,
+                          ),
                         ),
                         Text(
                           '${(widget.project.progress * 100).toInt()}%',
-                          style: theme.textTheme.bodyMedium,
+                          style: theme.textTheme.bodyLarge!.copyWith(
+                            color: Colors.white,
+                            fontSize: 14.0,
+                          ),
                         ),
                       ],
                     ),
@@ -188,7 +225,7 @@ class _ProjectCardState extends State<ProjectCard>
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
                 // Project Details
                 _buildDetailRow(
                   Icons.person,
@@ -196,27 +233,56 @@ class _ProjectCardState extends State<ProjectCard>
                   widget.project.client,
                   theme,
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
                 _buildDetailRow(
                   Icons.manage_accounts,
                   'Manager',
                   widget.project.manager,
                   theme,
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
                 _buildDetailRow(
                   Icons.calendar_today,
                   'Timeline',
                   '${DateFormat('MMM d, y').format(widget.project.startDate)} - ${DateFormat('MMM d, y').format(widget.project.endDate)}',
                   theme,
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
                 _buildDetailRow(
                   Icons.update,
                   'Last Updated',
                   DateFormat('MMM d, y').format(widget.project.lastUpdated),
                   theme,
                 ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 16.0),
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      // backgroundColor: theme.colorScheme.onPrimaryContainer,
+                      backgroundColor: theme.colorScheme.primaryContainer,
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const ProjectPage()));
+                    },
+                    label: Text(
+                      'Click To View',
+                      style: theme.textTheme.bodyLarge!.copyWith(
+                        color: Colors.black,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 14.0,
+                      ),
+                    ),
+                    icon: const Icon(
+                      Icons.arrow_right_rounded,
+                      color: Colors.black,
+                      weight: 30.0,
+                      size: 30.0,
+                    ),
+                  ),
+                )
               ],
             ),
           ),
@@ -235,13 +301,20 @@ class _ProjectCardState extends State<ProjectCard>
                       children: [
                         Text(
                           '${widget.project.subProjects.length} Sub-projects',
-                          style: theme.textTheme.titleMedium,
+                          style: theme.textTheme.titleLarge!.copyWith(
+                            color: Colors.white,
+                            fontSize: 14.0,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         const Spacer(),
                         RotationTransition(
                           turns: Tween(begin: 0.0, end: 0.5)
                               .animate(_expandAnimation),
-                          child: const Icon(Icons.expand_more),
+                          child: const Icon(
+                            Icons.expand_more,
+                            color: Colors.white,
+                          ),
                         ),
                       ],
                     ),
@@ -283,9 +356,10 @@ class _ProjectCardState extends State<ProjectCard>
           const SizedBox(width: 4),
           Text(
             model,
-            style: theme.textTheme.bodySmall?.copyWith(
+            style: theme.textTheme.bodyLarge?.copyWith(
               color: theme.colorScheme.onPrimaryContainer,
               fontWeight: FontWeight.bold,
+              fontSize: 12.0,
             ),
           ),
         ],
@@ -301,14 +375,20 @@ class _ProjectCardState extends State<ProjectCard>
         const SizedBox(width: 8),
         Text(
           '$label: ',
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurface.withOpacity(0.7),
+          style: theme.textTheme.bodyLarge?.copyWith(
+            color: Colors.white.withOpacity(0.9),
+            fontWeight: FontWeight.w400,
+            fontSize: 16.0,
           ),
         ),
         Expanded(
           child: Text(
             value,
-            style: theme.textTheme.bodyMedium,
+            style: theme.textTheme.bodyLarge!.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.w900,
+              fontSize: 14.0,
+            ),
           ),
         ),
       ],
@@ -321,7 +401,7 @@ class _ProjectCardState extends State<ProjectCard>
       decoration: BoxDecoration(
         border: Border(
           top: BorderSide(
-            color: theme.dividerColor,
+            color: Colors.white.withOpacity(0.7),
           ),
         ),
       ),
@@ -330,8 +410,9 @@ class _ProjectCardState extends State<ProjectCard>
         children: [
           Text(
             subProject.name,
-            style: theme.textTheme.titleMedium?.copyWith(
+            style: theme.textTheme.bodyLarge?.copyWith(
               fontWeight: FontWeight.bold,
+              color: Colors.white,
             ),
           ),
           const SizedBox(height: 8),
@@ -344,7 +425,9 @@ class _ProjectCardState extends State<ProjectCard>
                   children: [
                     Text(
                       'Progress',
-                      style: theme.textTheme.bodySmall,
+                      style: theme.textTheme.bodyLarge!.copyWith(
+                        color: Colors.white,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     ClipRRect(
@@ -370,12 +453,18 @@ class _ProjectCardState extends State<ProjectCard>
                   children: [
                     Text(
                       'Remaining Tasks',
-                      style: theme.textTheme.bodySmall,
+                      style: theme.textTheme.bodyLarge!.copyWith(
+                        color: Colors.white,
+                        fontSize: 12.0,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       subProject.remainingTasks.toString(),
-                      style: theme.textTheme.titleSmall,
+                      style: theme.textTheme.bodyLarge!.copyWith(
+                        color: Colors.white,
+                        fontSize: 12.0,
+                      ),
                     ),
                   ],
                 ),
@@ -385,8 +474,9 @@ class _ProjectCardState extends State<ProjectCard>
           const SizedBox(height: 8),
           Text(
             '${DateFormat('MMM d').format(subProject.startDate)} - ${DateFormat('MMM d').format(subProject.endDate)}',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurface.withOpacity(0.7),
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: Colors.white,
+              fontSize: 12.0,
             ),
           ),
         ],

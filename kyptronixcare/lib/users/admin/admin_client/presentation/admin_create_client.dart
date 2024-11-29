@@ -7,24 +7,22 @@ import 'package:intl/intl.dart';
 import 'package:kyptronixcare/core/widgets/custom_appbar.dart';
 import 'package:stylish_dialog/stylish_dialog.dart';
 
-import '../bloc/admin_crud_dev_bloc.dart';
+import '../bloc/admin_crud_client_bloc.dart';
 
-class AdminCreateDev extends StatefulWidget {
-  const AdminCreateDev({super.key});
+class AdminCreateClient extends StatefulWidget {
+  const AdminCreateClient({super.key});
 
   @override
-  State<AdminCreateDev> createState() => _AdminCreateDevState();
+  State<AdminCreateClient> createState() => _AdminCreateClientState();
 }
 
-class _AdminCreateDevState extends State<AdminCreateDev> {
+class _AdminCreateClientState extends State<AdminCreateClient> {
   final _formKey = GlobalKey<FormState>();
   bool _passwordVisible = false;
 
   // Form field controllers
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _roleTypeController = TextEditingController();
-  final TextEditingController _roleController = TextEditingController();
   final TextEditingController _dobController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
@@ -40,8 +38,6 @@ class _AdminCreateDevState extends State<AdminCreateDev> {
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
-    _roleTypeController.dispose();
-    _roleController.dispose();
     _dobController.dispose();
     _passwordController.dispose();
     _phoneController.dispose();
@@ -57,7 +53,7 @@ class _AdminCreateDevState extends State<AdminCreateDev> {
 
     return SafeArea(
       child: Scaffold(
-        body: BlocConsumer<AdminCrudDevBloc, AdminCrudDevState>(
+        body: BlocConsumer<AdminCrudClientBloc, AdminCrudClientState>(
           listener: (context, state) {
             // Dismiss the current dialog if it exists
             if (currentDialog != null) {
@@ -66,7 +62,7 @@ class _AdminCreateDevState extends State<AdminCreateDev> {
             }
 
             /* --------------------------- User Loading State --------------------------- */
-            if (state is AdminCrudDevLoading) {
+            if (state is AdminCrudClientLoading) {
               currentDialog = StylishDialog(
                 context: context,
                 controller: DialogController(
@@ -95,10 +91,9 @@ class _AdminCreateDevState extends State<AdminCreateDev> {
             }
 
             /* --------------------------- User Success State --------------------------- */
-            else if (state is AdminCrudDevSuccess) {
+            else if (state is AdminCrudClientSuccess) {
               _nameController.clear();
               _emailController.clear();
-              _roleController.clear();
               _dobController.clear();
               _passwordController.clear();
               _phoneController.clear();
@@ -157,7 +152,7 @@ class _AdminCreateDevState extends State<AdminCreateDev> {
             }
 
             /* ------------------------ Email Already Exists State ----------------------- */
-            else if (state is AdminCrudDevEmailAlreadyExists) {
+            else if (state is AdminCrudClientEmailAlreadyExists) {
               Navigator.pop(context);
               currentDialog = StylishDialog(
                 context: context,
@@ -184,10 +179,10 @@ class _AdminCreateDevState extends State<AdminCreateDev> {
           },
           listenWhen: (previous, current) {
             // Listen only for UserSuccess or EmailAlreadyExists states after CreateUserEvent
-            return current is AdminCrudDevLoading ||
-                current is AdminCrudDevSuccess ||
-                current is AdminCrudDevEmailAlreadyExists ||
-                current is AdminCrudDevError;
+            return current is AdminCrudClientLoading ||
+                current is AdminCrudClientSuccess ||
+                current is AdminCrudClientEmailAlreadyExists ||
+                current is AdminCrudClientError;
             // return current is UserSuccess || current is UserFailure;
           },
           builder: (context, state) {
@@ -196,7 +191,7 @@ class _AdminCreateDevState extends State<AdminCreateDev> {
                 children: [
                   // Custom AppBar
                   const CustomAppbar(
-                    title: 'Developer Form',
+                    title: 'Manager Form',
                   ),
 
                   // Form
@@ -223,12 +218,6 @@ class _AdminCreateDevState extends State<AdminCreateDev> {
                                 label: 'Email',
                                 icon: Icons.email,
                                 keyboardType: TextInputType.emailAddress,
-                              ),
-                              const SizedBox(height: 16.0),
-                              // _buildRoleDropdown(),
-                              RoleDropdown(
-                                roleCategoryController: _roleTypeController,
-                                roleController: _roleController,
                               ),
                               const SizedBox(height: 16.0),
                               _buildTextField(
@@ -309,10 +298,10 @@ class _AdminCreateDevState extends State<AdminCreateDev> {
       readOnly: readOnly,
       onTap: onTap,
       decoration: _inputDecoration(
-        hintText: label,
-        labelText: label,
-        prefixIcon: icon,
-      ),
+          labelText: label,
+          hintText: label,
+          prefixIcon: icon,
+          suffixIcon: suffixIcon),
       validator: (value) {
         if (value == null || value.isEmpty) {
           return 'Please enter $label';
@@ -326,11 +315,13 @@ class _AdminCreateDevState extends State<AdminCreateDev> {
     required String labelText,
     required String hintText,
     required IconData prefixIcon,
+    Widget? suffixIcon,
   }) {
     return InputDecoration(
       labelText: labelText,
       hintText: hintText,
       prefixIcon: Icon(prefixIcon, color: const Color(0xFF296FF9)),
+      suffixIcon: suffixIcon,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(color: Colors.grey.shade400),
@@ -349,38 +340,6 @@ class _AdminCreateDevState extends State<AdminCreateDev> {
       ),
     );
   }
-
-/* 
-  Widget _buildRoleDropdown() {
-    return DropdownButtonFormField<String>(
-      dropdownColor: Colors.white,
-      // controller: _roleController,
-      decoration: InputDecoration(
-        labelText: 'Role',
-        prefixIcon: const Icon(Icons.work),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.0),
-        ),
-      ),
-      items: ['Admin', 'Manager', 'Client', 'Developer']
-          .map<DropdownMenuItem<String>>((String value) {
-        return DropdownMenuItem<String>(
-          value: value,
-          child: Text(value),
-        );
-      }).toList(),
-      onChanged: (String? newValue) {
-        _roleController.text = newValue!;
-      },
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Please select a role';
-        }
-        return null;
-      },
-    );
-  }
- */
 
   Future<void> _selectDate() async {
     DateTime? picked = await showDatePicker(
@@ -429,12 +388,10 @@ class _AdminCreateDevState extends State<AdminCreateDev> {
           // print(_roleController.text);
           if (_formKey.currentState!.validate()) {
             // Submit form
-            context.read<AdminCrudDevBloc>().add(
-                  CreateUserDevEvent(
+            context.read<AdminCrudClientBloc>().add(
+                  CreateUserClientEvent(
                       name: _nameController.text.trim(),
                       email: _emailController.text.trim(),
-                      roleType: _roleTypeController.text.trim(),
-                      role: _roleController.text.trim(),
                       password: _passwordController.text.trim(),
                       phone: _phoneController.text.trim(),
                       whatsappNumber: _whatsappController.text.trim(),
@@ -479,145 +436,6 @@ class _AdminCreateDevState extends State<AdminCreateDev> {
             color: Colors.blueAccent,
           ),
         ),
-      ),
-    );
-  }
-}
-
-// ----------------------------------------
-
-class RoleDropdown extends StatefulWidget {
-  final TextEditingController roleCategoryController;
-  final TextEditingController roleController;
-
-  const RoleDropdown({
-    super.key,
-    required this.roleCategoryController,
-    required this.roleController,
-  });
-
-  @override
-  State<RoleDropdown> createState() => _RoleDropdownState();
-}
-
-class _RoleDropdownState extends State<RoleDropdown> {
-  String? _selectedCategory;
-  String? _selectedRole;
-
-  // Define categories and subcategories
-  final Map<String, List<String>> _roleCategories = {
-    'Developer': ['Mobile Developer', 'Web Developer'],
-    'Digital Marketing': ['SEO', 'SMO', 'PPC Specialist'],
-  };
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        DropdownButtonFormField<String>(
-          dropdownColor: Colors.white,
-          /*  decoration: InputDecoration(
-            labelText: 'Category',
-            prefixIcon: const Icon(Icons.work),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12.0),
-            ),
-          ), */
-          decoration: _inputDecoration(
-            labelText: 'Category',
-            hintText: 'Category',
-            prefixIcon: Icons.work,
-          ),
-          items: _roleCategories.keys
-              .map<DropdownMenuItem<String>>((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: Text(value),
-            );
-          }).toList(),
-          value: _selectedCategory,
-          onChanged: (String? newValue) {
-            setState(() {
-              _selectedCategory = newValue;
-              _selectedRole = null; // Reset role when category changes
-              widget.roleCategoryController.text =
-                  newValue ?? ''; // Update controller
-              widget.roleController.text = ''; // Reset role controller
-            });
-          },
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Please select a category';
-            }
-            return null;
-          },
-        ),
-        const SizedBox(height: 16.0),
-        DropdownButtonFormField<String>(
-          dropdownColor: Colors.white,
-          // decoration: InputDecoration(
-          //   labelText: 'Role',
-          //   prefixIcon: const Icon(Icons.person),
-          //   border: OutlineInputBorder(
-          //     borderRadius: BorderRadius.circular(12.0),
-          //   ),
-          // ),
-          decoration: _inputDecoration(
-              labelText: 'Role',
-              hintText: 'hintText',
-              prefixIcon: Icons.person),
-
-          items: (_selectedCategory != null
-                  ? _roleCategories[_selectedCategory]!
-                  : [])
-              .map<DropdownMenuItem<String>>((dynamic value) {
-            return DropdownMenuItem<String>(
-              value: value as String,
-              child: Text(value),
-            );
-          }).toList(),
-          value: _selectedRole,
-          onChanged: (String? newValue) {
-            setState(() {
-              _selectedRole = newValue;
-              widget.roleController.text = newValue ?? ''; // Update controller
-            });
-          },
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Please select a role';
-            }
-            return null;
-          },
-        ),
-      ],
-    );
-  }
-
-  InputDecoration _inputDecoration({
-    required String labelText,
-    required String hintText,
-    required IconData prefixIcon,
-  }) {
-    return InputDecoration(
-      labelText: labelText,
-      hintText: hintText,
-      prefixIcon: Icon(prefixIcon, color: const Color(0xFF4A6CF7)),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.grey.shade400),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.grey.shade400),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF4A6CF7), width: 2),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Colors.red),
       ),
     );
   }

@@ -7,20 +7,24 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../model/user_model.dart';
 
-part 'admin_crud_event.dart';
-part 'admin_crud_state.dart';
+part 'admin_crud_client_event.dart';
+part 'admin_crud_client_state.dart';
 
-class AdminCrudBloc extends Bloc<AdminCrudEvent, AdminCrudState> {
+class AdminCrudClientBloc
+    extends Bloc<AdminCrudClientEvent, AdminCrudClientState> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  AdminCrudBloc() : super(AdminCrudInitial()) {
-    on<CreateUserAdminEvent>(_createUserAdminEvent);
-    on<GetUserAdminEvent>(_getUserAdminEvent);
+
+  AdminCrudClientBloc() : super(AdminCrudClientInitial()) {
+    on<AdminCrudClientEvent>((event, emit) {});
+    on<CreateUserClientEvent>(_createUserClientEvent);
+    on<GetUserClientEvent>(_getUserClientEvent);
   }
 
-  Future<void> _createUserAdminEvent(
-      CreateUserAdminEvent event, Emitter<AdminCrudState> emit) async {
-    emit(AdminCrudLoading());
+  Future<void> _createUserClientEvent(
+      CreateUserClientEvent event, Emitter<AdminCrudClientState> emit) async {
+    emit(AdminCrudClientLoading());
+
     try {
       // Attempt to create user in Firebase Authentication
       UserCredential userCredential =
@@ -34,7 +38,7 @@ class AdminCrudBloc extends Bloc<AdminCrudEvent, AdminCrudState> {
         id: userCredential.user!.uid,
         name: event.name,
         email: event.email,
-        role: 'admin',
+        role: 'Client',
         profilePictureUrl: '',
         assignedProjects: [],
         emergencyTasks: [],
@@ -51,31 +55,33 @@ class AdminCrudBloc extends Bloc<AdminCrudEvent, AdminCrudState> {
 
       await _firestore.collection('users').doc(user.id).set(user.toMap());
 
-      emit(AdminCrudSuccess(user.id));
+      emit(AdminCrudClientSuccess(user.id));
     } on FirebaseAuthException catch (e) {
       if (e.code == 'email-already-in-use') {
-        emit(AdminCrudEmailAlreadyExists(event.email));
+        emit(AdminCrudClientEmailAlreadyExists(event.email));
       } else {
-        emit(AdminCrudError(e.message ?? 'An error occurred.'));
+        emit(AdminCrudClientError(e.message ?? 'An error occurred.'));
       }
     } catch (error) {
-      emit(AdminCrudError(error.toString()));
+      emit(AdminCrudClientError(error.toString()));
     }
   }
 
-  Future<void> _getUserAdminEvent(
-      GetUserAdminEvent event, Emitter<AdminCrudState> emit) async {
-    emit(AdminCrudLoading());
+  Future<void> _getUserClientEvent(
+      GetUserClientEvent event, Emitter<AdminCrudClientState> emit) async {
+    emit(AdminCrudClientLoading());
     try {
-      // Query Firestore for users with the role 'admin'
+      // Query Firestore for users whose role is one of 'admin', 'projectManager', or 'client'
       QuerySnapshot adminQuerySnapshot = await _firestore
           .collection('users')
-          .where('role', isEqualTo: 'admin')
+          .where('role', isEqualTo: 'Client')
           .get();
 
-      // Check if any admins were found
+      // Filter out users with these roles
+
+      // If no users are found, emit an error
       if (adminQuerySnapshot.docs.isEmpty) {
-        emit(const AdminCrudError('No users found.'));
+        emit(const AdminCrudClientError('No users found.'));
         return;
       }
 
@@ -85,9 +91,9 @@ class AdminCrudBloc extends Bloc<AdminCrudEvent, AdminCrudState> {
               UserModel.fromMap(doc.id, doc.data() as Map<String, dynamic>))
           .toList();
 
-      emit(AdminCrudUserFetched(adminUsers));
+      emit(AdminCrudClientUserFetched(adminUsers));
     } catch (error) {
-      emit(AdminCrudError(error.toString()));
+      emit(AdminCrudClientError(error.toString()));
     }
   }
 }

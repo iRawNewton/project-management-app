@@ -37,22 +37,23 @@ class AdminDashboardHeader extends StatelessWidget {
           ),
         ),
         const Gap(4.0),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12.0),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 12.0),
           child: Row(
             children: [
               Expanded(
-                child: Text(
-                  'Admin',
-                  style: textTheme.bodyLarge?.copyWith(
-                    fontSize: 44.0,
-                    fontWeight: FontWeight.w600,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
+                // child: Text(
+                //   'Admin',
+                //   style: textTheme.bodyLarge?.copyWith(
+                //     fontSize: 44.0,
+                //     fontWeight: FontWeight.w600,
+                //     overflow: TextOverflow.ellipsis,
+                //   ),
+                // ),
+                child: SizedBox(),
               ),
-              const SizedBox(width: 8.0), // Spacing between text and avatar
-              const ActiveProfileAvatar(),
+              SizedBox(width: 8.0), // Spacing between text and avatar
+              ActiveProfileAvatar(),
             ],
           ),
         ),

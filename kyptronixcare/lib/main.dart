@@ -7,7 +7,10 @@ import 'core/themes/app_theme.dart';
 import 'core/themes/theme_cubit.dart';
 import 'features/splash_screen/pages/onboarding_screen.dart';
 import 'users/admin/admin_accounts/bloc/admin_crud_bloc.dart';
+import 'users/admin/admin_client/bloc/admin_crud_client_bloc.dart';
 import 'users/admin/admin_developers/bloc/admin_crud_dev_bloc.dart';
+import 'users/admin/admin_managers/bloc/admin_crud_manager_bloc.dart';
+import 'users/admin/admin_projects/bloc/admin_projects_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,6 +38,15 @@ class MyApp extends StatelessWidget {
         ),
         BlocProvider(
           create: (context) => AdminCrudDevBloc(),
+        ),
+        BlocProvider(
+          create: (context) => AdminCrudManagerBloc(),
+        ),
+        BlocProvider(
+          create: (context) => AdminCrudClientBloc(),
+        ),
+        BlocProvider(
+          create: (context) => AdminProjectsBloc(),
         ),
       ],
       child: BlocBuilder<ThemeCubit, ThemeState>(

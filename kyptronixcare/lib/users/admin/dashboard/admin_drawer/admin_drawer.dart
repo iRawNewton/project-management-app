@@ -6,8 +6,9 @@ import 'package:kyptronixcare/users/admin/admin_add_role/presentation/add_role.d
 
 import '../../../../core/themes/theme_cubit.dart';
 import '../../admin_accounts/presentation/admin_list.dart';
+import '../../admin_client/presentation/admin_client_listview.dart';
 import '../../admin_developers/presentation/admin_developers.dart';
-import '../../admin_projects/presentation/admin_create_project.dart';
+import '../../admin_managers/presentation/admin_manager_listview.dart';
 import '../../admin_projects/presentation/admin_project_listview.dart';
 
 class AdminDrawer extends StatelessWidget {
@@ -55,6 +56,20 @@ class AdminDrawer extends StatelessWidget {
             onTap: () => _onItemTapped(context, 'Dashboard'),
           ),
           _buildDrawerItem(
+            icon: Icons.supervisor_account,
+            text: 'Managers',
+            iconColor: iconColor,
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AdminManagerListview(),
+                ),
+              );
+            },
+          ),
+          _buildDrawerItem(
             icon: Icons.code,
             text: 'Development Team',
             iconColor: iconColor,
@@ -72,7 +87,15 @@ class AdminDrawer extends StatelessWidget {
             icon: Icons.groups,
             text: 'Clients',
             iconColor: iconColor,
-            onTap: () => _onItemTapped(context, 'Clients'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AdminClientListview(),
+                ),
+              );
+            },
           ),
           _buildDrawerItem(
             icon: Icons.mail,
@@ -164,6 +187,7 @@ class AdminDrawer extends StatelessWidget {
     );
   }
 
+/*
   Widget _buildHeader(BuildContext context, TextTheme textTheme) {
     return DrawerHeader(
       decoration: BoxDecoration(
@@ -185,6 +209,7 @@ class AdminDrawer extends StatelessWidget {
       ),
     );
   }
+*/
 
   Widget _buildDrawerItem({
     required IconData icon,

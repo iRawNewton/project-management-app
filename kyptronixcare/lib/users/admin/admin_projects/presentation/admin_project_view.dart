@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
+// import '../widgets/sub_project_view.dart';
+
 class ColorPalette {
   // Light Theme Colors
   static const lightPrimaryGradientStart = Color(0xFF4158D0);
@@ -249,6 +251,7 @@ class _ProjectPageState extends State<ProjectPage>
             controller: _tabController,
             children: [
               _buildOverviewTab(isDark),
+              // ProjectsPage(),
               _buildTeamTab(isDark),
               _buildTasksTab(isDark),
               _buildFinancesTab(isDark),
@@ -257,7 +260,12 @@ class _ProjectPageState extends State<ProjectPage>
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {},
+        onPressed: () {
+          // Navigator.push(
+          //     context,
+          //     MaterialPageRoute(
+          //         builder: (context) => const ImprovedProjectFormPage()));
+        },
         backgroundColor:
             isDark ? ColorPalette.darkAccent1 : ColorPalette.lightAccent1,
         icon: const Icon(Icons.add),

@@ -2,7 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../../../model/user_model.dart';
-import '../presentation/admin_profile.dart';
+import '../../admin_user_profile/admin_user_details_page.dart';
 
 class DeveloperCard extends StatefulWidget {
   final UserModel adminUsers;
@@ -153,20 +153,25 @@ class _DeveloperCardState extends State<DeveloperCard> {
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => UserProfileScreen(
-                                        name: widget.adminUsers.name,
-                                        email: 'email',
-                                        role: 'role',
-                                        profilePictureUrl:
-                                            'https://tinyurl.com/2hxnfuaj',
-                                        assignedProjects: [''],
-                                        emergencyTasks: ['emergencyTasks'],
-                                        notifications: ['notifications'],
-                                        phone: '334534543543',
-                                        whatsappNumber: '3425342534',
-                                        dateOfBirth: 'dateOfBirth',
-                                        createdAt: DateTime.now(),
-                                        lastLogin: DateTime.now())));
+                                  builder: (context) =>
+                                      //    UserProfileScreen(
+                                      //     name: widget.adminUsers.name,
+                                      //     email: 'email',
+                                      //     role: 'role',
+                                      //     profilePictureUrl:
+                                      //         'https://tinyurl.com/2hxnfuaj',
+                                      //     assignedProjects: [''],
+                                      //     emergencyTasks: ['emergencyTasks'],
+                                      //     notifications: ['notifications'],
+                                      //     phone: '334534543543',
+                                      //     whatsappNumber: '3425342534',
+                                      //     dateOfBirth: 'dateOfBirth',
+                                      //     createdAt: DateTime.now(),
+                                      //     lastLogin: DateTime.now(),
+                                      //   ),
+                                      // ),
+                                      const UserDetailsPage(),
+                                ));
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor:

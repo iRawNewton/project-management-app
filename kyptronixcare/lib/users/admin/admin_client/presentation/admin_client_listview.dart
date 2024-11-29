@@ -6,20 +6,20 @@ import 'package:stylish_dialog/stylish_dialog.dart';
 
 import '../../../../core/widgets/custom_appbar.dart';
 import '../../admin_accounts/widgets/developer_card.dart';
-import '../bloc/admin_crud_dev_bloc.dart';
-import 'admin_create_dev.dart';
+import '../bloc/admin_crud_client_bloc.dart';
+import 'admin_create_client.dart';
 
-class DevelopersPage extends StatefulWidget {
-  const DevelopersPage({super.key});
+class AdminClientListview extends StatefulWidget {
+  const AdminClientListview({super.key});
 
   @override
-  State<DevelopersPage> createState() => _DevelopersPageState();
+  State<AdminClientListview> createState() => _AdminClientListviewState();
 }
 
-class _DevelopersPageState extends State<DevelopersPage> {
+class _AdminClientListviewState extends State<AdminClientListview> {
   @override
   void initState() {
-    context.read<AdminCrudDevBloc>().add(GetUserDevEvent());
+    context.read<AdminCrudClientBloc>().add(GetUserClientEvent());
     super.initState();
   }
 
@@ -35,14 +35,14 @@ class _DevelopersPageState extends State<DevelopersPage> {
             children: [
               // Custom AppBar
 
-              const CustomAppbar(title: 'Developers'),
+              const CustomAppbar(title: 'Clients'),
               const Gap(20.0),
 
-              BlocConsumer<AdminCrudDevBloc, AdminCrudDevState>(
+              BlocConsumer<AdminCrudClientBloc, AdminCrudClientState>(
                 listener: (context, state) {
                   // Handle any specific state changes (like showing a snackbar on error)
 
-                  if (state is AdminCrudDevError) {
+                  if (state is AdminCrudClientError) {
                     if (state.message == "No users found.") {
                       currentDialog = StylishDialog(
                         context: context,
@@ -79,12 +79,12 @@ class _DevelopersPageState extends State<DevelopersPage> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const AdminCreateDev(),
+                                builder: (context) => const AdminCreateClient(),
                               ),
                             );
                           },
                           child: Text(
-                            'Add Developer',
+                            'Add Manager',
                             style: theme.textTheme.bodyLarge!.copyWith(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -140,7 +140,7 @@ class _DevelopersPageState extends State<DevelopersPage> {
                 //   return current is GetUserDevEvent;
                 // },
                 builder: (context, state) {
-                  if (state is AdminCrudDevUserFetched) {
+                  if (state is AdminCrudClientUserFetched) {
                     return Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Wrap(
@@ -151,7 +151,7 @@ class _DevelopersPageState extends State<DevelopersPage> {
                         }).toList(),
                       ),
                     );
-                  } else if (state is AdminCrudDevLoading) {
+                  } else if (state is AdminCrudClientLoading) {
                     return GridView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
@@ -165,7 +165,7 @@ class _DevelopersPageState extends State<DevelopersPage> {
                         return _buildShimmerImage();
                       },
                     );
-                  } else if (state is AdminCrudDevError) {
+                  } else if (state is AdminCrudClientError) {
                     return const Text(
                         'Looks like we hit a snag. Give it another shot!'); // Handle error state
                   }
@@ -181,11 +181,11 @@ class _DevelopersPageState extends State<DevelopersPage> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const AdminCreateDev(),
+                builder: (context) => const AdminCreateClient(),
               ),
             );
           },
-          tooltip: 'Add Admin',
+          tooltip: 'Add Manager',
           child: const Icon(Icons.add),
         ),
       ),

@@ -1,6 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
-// import 'package:project_management_app/core/widgets/custom_appbar.dart';
+import 'package:stylish_dialog/stylish_dialog.dart';
+
+import '../../../../core/widgets/custom_appbar.dart';
+import '../../../model/user_model.dart';
+import '../bloc/admin_projects_bloc.dart';
 
 class AdminCreateProject extends StatefulWidget {
   const AdminCreateProject({super.key});
@@ -10,493 +17,391 @@ class AdminCreateProject extends StatefulWidget {
 }
 
 class _AdminCreateProjectState extends State<AdminCreateProject> {
-  final _formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  final TextEditingController _projectNameController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-  final TextEditingController _startDateController = TextEditingController();
-  final TextEditingController _endDateController = TextEditingController();
-  final TextEditingController _totalAmountController = TextEditingController();
-  // final TextEditingController _grossAmountController = TextEditingController();
-  final TextEditingController _amountPaidController = TextEditingController();
-  final TextEditingController _recurringAmountController =
-      TextEditingController();
+  final TextEditingController _clientId = TextEditingController();
 
-  final List<TextEditingController> _subProjectControllers = [];
-  final List<Map<String, List<TextEditingController>>>
-      _subProjectDevelopersControllers = [];
-  final List<Map<String, TextEditingController>>
-      _subProjectManagersControllers = [];
+  String? selectedClient;
 
-  String? _paymentModel;
-  bool _isSubProject = false;
-
-  final List<String> _managers = [
-    'Manager 1',
-    'Manager 2',
-    'Manager 3'
-  ]; // Replace with your data
-
-  int _currentStep = 0; // Track the current step
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _descriptionController.dispose();
+    _clientId.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final bool isDarkMode = theme.brightness == Brightness.dark;
-    final textTheme = Theme.of(context).textTheme;
+    final theme = Theme.of(context);
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    StylishDialog? currentDialog;
 
     return SafeArea(
       child: Scaffold(
         body: SingleChildScrollView(
           child: Form(
             key: _formKey,
-            child: Stepper(
-              physics: const NeverScrollableScrollPhysics(),
-
-              type: StepperType.vertical,
-              controlsBuilder: (context, details) {
-                return Row(
-                  children: [
-                    ElevatedButton(
-                      onPressed: details.onStepContinue,
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        backgroundColor: isDarkMode
-                            ? Theme.of(context).colorScheme.secondary
-                            : Theme.of(context).colorScheme.primary,
-                        textStyle:
-                            textTheme.bodyLarge!.copyWith(color: Colors.white),
-                        // shape: RoundedRectangleBorder(
-                        //     borderRadius: BorderRadius.circular(18.0)),
-                      ),
-                      child: Text(_currentStep ==
-                              _buildSteps(false, textTheme).length - 1
-                          ? 'Submit'
-                          : 'Continue'),
-                    ),
-                    if (_currentStep > 0) ...[
-                      TextButton(
-                        onPressed: details.onStepCancel,
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.red,
-                          textStyle: textTheme.bodyLarge!.copyWith(
-                            color: Colors.white,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const CustomAppbar(title: 'Create Project'),
+                BlocListener<AdminProjectsBloc, AdminProjectsState>(
+                  listener: (context, state) {
+                    if (currentDialog != null) {
+                      currentDialog!.dismiss();
+                      currentDialog = null; // Clear the reference
+                    }
+                    if (state is AdminProjectsLoading) {
+                      currentDialog = StylishDialog(
+                        context: context,
+                        controller: DialogController(
+                          listener: (status) {},
+                        ),
+                        alertType: StylishDialogType.PROGRESS,
+                        style: DefaultStyle(
+                          progressColor: Colors.teal,
+                          animationLoop: true,
+                          backgroundColor:
+                              isDarkMode ? Colors.black : Colors.white,
+                        ),
+                        dismissOnTouchOutside: false,
+                        title: Text(
+                          'Hold Tight! 🚀',
+                          style: theme.textTheme.bodyLarge!.copyWith(
                             fontWeight: FontWeight.bold,
-                            fontSize: 16.0,
                           ),
                         ),
-                        child: const Text('Cancel'),
-                      ),
-                      const Gap(8),
-                    ],
-                  ],
-                );
-              },
-              steps: _buildSteps(isDarkMode, textTheme),
-              currentStep: _currentStep, // Use the tracked step
-              onStepContinue: () {
-                if (_currentStep <
-                    _buildSteps(false, Theme.of(context).textTheme).length -
-                        1) {
-                  setState(() {
-                    _currentStep += 1;
-                  });
-                } else {
-                  // Handle form submission or final action
-                }
-                // if (_formKey.currentState!.validate()) {
-                //   if (_currentStep <
-                //       _buildSteps(false, Theme.of(context).textTheme).length -
-                //           1) {
-                //     setState(() {
-                //       _currentStep += 1;
-                //     });
-                //   } else {
-                //     // Handle form submission or final action
-                //   }
-                // }
-                // setState(() {
-                //   _currentStep += 1;
-                // });
-              },
-              onStepCancel: _handleStepCancel,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  List<Step> _buildSteps(bool isDarkMode, TextTheme textTheme) {
-    return [
-      Step(
-        title: const Text('Project Details'),
-        content: Column(
-          children: [
-            _buildTextField(
-              controller: _projectNameController,
-              label: 'Project Name',
-              icon: Icons.title,
-              textInputType: TextInputType.name,
-            ),
-            _buildTextField(
-              controller: _descriptionController,
-              label: 'Description',
-              icon: Icons.description,
-              maxLines: 4,
-              textInputType: TextInputType.text,
-            ),
-          ],
-        ),
-        isActive: true,
-      ),
-      Step(
-        title: const Text('Sub-Project Details'),
-        content: Column(
-          children: [
-            _buildProjectTypeSwitch(),
-            if (_isSubProject)
-              _buildDynamicFieldList(
-                title: 'Sub-Projects',
-                controllers: _subProjectControllers,
-                onAdd: _addSubProjectField,
-                onRemove: _removeSubProjectField,
-                isDarkMode: isDarkMode,
-                additionalWidgetBuilder: (index) {
-                  return Column(
-                    children: [
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 24.0),
-                        child: Divider(),
-                      ),
-                      _buildDynamicFieldList(
-                        isDarkMode: isDarkMode,
-                        title: 'Sub-Project ${index + 1} Developers',
-                        controllers: _subProjectDevelopersControllers[index]
-                                ['developers'] ??
-                            [],
-                        onAdd: () => _addSubProjectDeveloperField(index),
-                        onRemove: (int developerIndex) =>
-                            _removeSubProjectDeveloperField(
-                                index, developerIndex),
-                      ),
-                      _buildDropdown(
-                        label: 'Sub-Project ${index + 1} Manager',
-                        items: _managers,
-                        value: _managers.contains(
-                                _subProjectManagersControllers[index]
-                                        ['manager']!
-                                    .text)
-                            ? _subProjectManagersControllers[index]['manager']!
-                                .text
-                            : null,
-                        isDarkMode: isDarkMode,
-                        textTheme: textTheme,
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            _subProjectManagersControllers[index]['manager']!
-                                .text = newValue!;
-                          });
-                        },
-                      ),
-                      const Gap(24.0),
-                      Divider(
-                        thickness: 2,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      const Gap(24.0),
-                    ],
-                  );
-                },
-              )
-          ],
-        ),
-        isActive: true,
-      ),
-      Step(
-        title: const Text('Dates'),
-        content: Column(
-          children: [
-            _buildTextField(
-              controller: _startDateController,
-              label: 'Start Date',
-              icon: Icons.calendar_today,
-              textInputType: TextInputType.datetime,
-              readOnly: true,
-              onTap: () => _selectDate(_startDateController),
-            ),
-            _buildTextField(
-              controller: _endDateController,
-              label: 'End Date',
-              icon: Icons.calendar_today,
-              textInputType: TextInputType.datetime,
-              readOnly: true,
-              onTap: () => _selectDate(_endDateController),
-            ),
-          ],
-        ),
-        isActive: true,
-      ),
-      Step(
-        title: const Text('Payment Details'),
-        content: Column(
-          children: [
-            _buildDropdown(
-              label: 'Payment Model',
-              items: ['one-time', 'recurring'],
-              value: _paymentModel,
-              isDarkMode: isDarkMode,
-              textTheme: textTheme,
-              onChanged: (String? newValue) {
-                setState(() {
-                  _paymentModel = newValue;
-                });
-              },
-            ),
-            if (_paymentModel == 'one-time')
-              Column(
-                children: [
-                  _buildTextField(
-                    controller: _totalAmountController,
-                    label: 'Total Amount',
-                    icon: Icons.attach_money,
-                    textInputType: TextInputType.number,
-                  ),
-                  _buildTextField(
-                    controller: _amountPaidController,
-                    label: 'Amount Paid',
-                    icon: Icons.attach_money,
-                    textInputType: TextInputType.number,
-                  ),
-                ],
-              )
-            else if (_paymentModel == 'recurring')
-              _buildTextField(
-                controller: _recurringAmountController,
-                label: 'Recurring Amount',
-                icon: Icons.attach_money,
-                textInputType: TextInputType.number,
-              ),
-          ],
-        ),
-        isActive: true,
-      ),
-    ];
-  }
-
-  void _handleStepContinue() {
-    if (_formKey.currentState!.validate()) {
-      if (_currentStep <
-          _buildSteps(false, Theme.of(context).textTheme).length - 1) {
-        setState(() {
-          _currentStep += 1;
-        });
-      } else {
-        // Handle form submission or final action
-      }
-    }
-  }
-
-  void _handleStepCancel() {
-    if (_currentStep > 0) {
-      setState(() {
-        _currentStep -= 1;
-      });
-    }
-  }
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-    required IconData icon,
-    TextInputType textInputType = TextInputType.text,
-    int maxLines = 1,
-    bool readOnly = false,
-    VoidCallback? onTap,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: TextFormField(
-        controller: controller,
-        keyboardType: textInputType,
-        maxLines: maxLines,
-        readOnly: readOnly,
-        onTap: onTap,
-        decoration: InputDecoration(
-          labelText: label,
-          prefixIcon: Icon(icon),
-          border: const OutlineInputBorder(),
-        ),
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return 'Please enter $label';
-          }
-          return null;
-        },
-      ),
-    );
-  }
-
-  Widget _buildDropdown({
-    required String label,
-    required List<String> items,
-    required String? value,
-    required bool isDarkMode,
-    required TextTheme textTheme,
-    required void Function(String?) onChanged,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: DropdownButtonFormField<String>(
-        decoration: InputDecoration(
-          labelText: label,
-          border: const OutlineInputBorder(),
-        ),
-        value: value,
-        onChanged: onChanged,
-        items: items.map<DropdownMenuItem<String>>((String item) {
-          return DropdownMenuItem<String>(
-            value: item,
-            child: Text(item),
-          );
-        }).toList(),
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return 'Please select $label';
-          }
-          return null;
-        },
-      ),
-    );
-  }
-
-// TODO:
-  Widget _buildDynamicFieldList({
-    required String title,
-    required List<TextEditingController> controllers,
-    required VoidCallback onAdd,
-    required void Function(int) onRemove,
-    Widget Function(int index)? additionalWidgetBuilder,
-    required bool isDarkMode,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: Theme.of(context).textTheme.bodyLarge,
-          ),
-          const Gap(8),
-          ...List.generate(controllers.length, (index) {
-            return Column(
-              key: ValueKey(index),
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildTextField(
-                        controller: controllers[index],
-                        label: '$title ${index + 1}',
-                        icon: Icons.subdirectory_arrow_right,
-                      ),
+                        content: Text(
+                          'Your project is on the launch pad, ready to blast off!',
+                          style: theme.textTheme.bodyLarge,
+                          textAlign: TextAlign.center,
+                        ),
+                      );
+                      currentDialog!.show(); // Show the loading dialog
+                    }
+                    if (state is AdminProjectsCreatedSuccessfully) {
+                      _nameController.clear();
+                      _descriptionController.clear();
+                      _clientId.clear();
+                      currentDialog = StylishDialog(
+                        context: context,
+                        alertType: StylishDialogType.SUCCESS,
+                        style: DefaultStyle(
+                          progressColor: Colors.teal,
+                          animationLoop: true,
+                          backgroundColor:
+                              isDarkMode ? Colors.black : Colors.white,
+                        ),
+                        title: Text(
+                          'All Systems Go! 🚀',
+                          style: theme.textTheme.bodyLarge!
+                              .copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        cancelButton: TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: Text(
+                            'Cancel',
+                            style: theme.textTheme.bodyLarge!.copyWith(
+                              color: Colors.red,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        confirmButton: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                            ),
+                          ),
+                          onPressed: () {
+                            // Navigate to profile or perform an action
+                          },
+                          child: Text(
+                            'Go to Project',
+                            style: theme.textTheme.bodyLarge!.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        content: Text(
+                          'Your project is live. The world is waiting. Don’t mess it up!',
+                          style: theme.textTheme.bodyLarge,
+                          textAlign: TextAlign.center,
+                        ),
+                      );
+                      currentDialog!.show(); // Show the success dialog
+                    }
+                    if (state is AdminProjectsCreateFailed) {
+                      Navigator.pop(context);
+                      currentDialog = StylishDialog(
+                        context: context,
+                        alertType: StylishDialogType.ERROR,
+                        style: DefaultStyle(
+                          backgroundColor:
+                              isDarkMode ? Colors.black : Colors.white,
+                          progressColor: Colors.teal,
+                          animationLoop: true,
+                        ),
+                        title: Text(
+                          'Whoopsie! 😅',
+                          style: theme.textTheme.bodyLarge!.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        content: Text(
+                          'Looks like we hit a snag. Give it another shot!',
+                          style: theme.textTheme.bodyLarge,
+                          textAlign: TextAlign.center,
+                        ),
+                      );
+                      currentDialog!.show();
+                    }
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Gap(24.0),
+                        _buildProjectNameField(),
+                        const SizedBox(height: 20),
+                        _buildDescriptionField(),
+                        const SizedBox(height: 20),
+                        _buildClientDropdown(theme),
+                        const SizedBox(height: 30),
+                        _buildSubmitButton(theme),
+                      ],
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.remove),
-                      onPressed: () => onRemove(index),
-                    ),
-                  ],
+                  ),
                 ),
-                if (additionalWidgetBuilder != null)
-                  additionalWidgetBuilder(index),
               ],
-            );
-          }),
-          Align(
-            alignment: Alignment.centerRight,
-            child: ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: isDarkMode
-                    ? Theme.of(context).colorScheme.secondary.withOpacity(0.6)
-                    : Theme.of(context).colorScheme.primary,
-                iconColor: Colors.white,
-              ),
-              onPressed: onAdd,
-              icon: const Icon(Icons.add),
-              label: Text(
-                'Add $title',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyLarge!
-                    .copyWith(color: Colors.white),
-              ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
 
-  void _addSubProjectField() {
-    setState(() {
-      final subProjectController = TextEditingController();
-      _subProjectControllers.add(subProjectController);
-      _subProjectDevelopersControllers.add({
-        'developers': [],
-      });
-      _subProjectManagersControllers.add({
-        'manager': TextEditingController(),
-      });
-    });
-  }
-
-  void _removeSubProjectField(int index) {
-    setState(() {
-      _subProjectControllers.removeAt(index);
-      _subProjectDevelopersControllers.removeAt(index);
-      _subProjectManagersControllers.removeAt(index);
-    });
-  }
-
-  void _addSubProjectDeveloperField(int index) {
-    setState(() {
-      _subProjectDevelopersControllers[index]['developers']!
-          .add(TextEditingController());
-    });
-  }
-
-  void _removeSubProjectDeveloperField(int projectIndex, int developerIndex) {
-    setState(() {
-      _subProjectDevelopersControllers[projectIndex]['developers']!
-          .removeAt(developerIndex);
-    });
-  }
-
-  void _selectDate(TextEditingController controller) async {
-    DateTime? selectedDate = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-    );
-
-    if (selectedDate != null) {
-      controller.text = selectedDate.toIso8601String().substring(0, 10);
-    }
-  }
-
-  Widget _buildProjectTypeSwitch() {
-    return SwitchListTile(
-      inactiveThumbColor: Colors.grey.shade800,
-      inactiveTrackColor: Colors.black38,
-      title: const Text('Is this a Sub-Project?'),
-      value: _isSubProject,
-      onChanged: (bool value) {
-        setState(() {
-          _isSubProject = value;
-        });
+  Widget _buildProjectNameField() {
+    return TextFormField(
+      controller: _nameController,
+      keyboardType: TextInputType.name,
+      textCapitalization: TextCapitalization.words,
+      decoration: _inputDecoration(
+        labelText: 'Project Name',
+        hintText: 'Enter project name',
+        prefixIcon: Icons.work_outline,
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Project name is required';
+        }
+        return null;
       },
+    );
+  }
+
+  Widget _buildDescriptionField() {
+    return TextFormField(
+      controller: _descriptionController,
+      maxLines: 4,
+      keyboardType: TextInputType.multiline,
+      textCapitalization: TextCapitalization.sentences,
+      decoration: _inputDecoration(
+        labelText: 'Description',
+        hintText: 'Provide project details',
+        prefixIcon: Icons.description_outlined,
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Project description is required';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildClientDropdown(ThemeData theme) {
+    return FutureBuilder<QuerySnapshot>(
+      future: _firestore
+          .collection('users')
+          .where('role', isEqualTo: 'Client')
+          .get(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          // Show a loading spinner while waiting for the data
+          return const CircularProgressIndicator();
+        }
+
+        if (snapshot.hasError) {
+          // Handle any errors
+          return Text('Error: ${snapshot.error}');
+        }
+
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          // If no data is found
+          return const Text('No clients available');
+        }
+
+        // Convert the Firestore documents to a list of UserModel
+        final List<UserModel> clients = snapshot.data!.docs
+            .map((doc) =>
+                UserModel.fromMap(doc.id, doc.data() as Map<String, dynamic>))
+            .toList();
+
+        return DropdownSearch<String>(
+          popupProps: PopupProps.menu(
+            showSearchBox: true,
+            searchFieldProps: TextFieldProps(
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                hintText: 'Search clients...',
+              ),
+            ),
+          ),
+          decoratorProps: DropDownDecoratorProps(
+            textAlign: TextAlign.start,
+            baseStyle: theme.textTheme.bodyLarge,
+            decoration: _inputDecoration(
+              labelText: 'Client Name',
+              hintText: 'Select client',
+              prefixIcon: Icons.business_outlined,
+            ),
+          ),
+          items: (String filter, loadProps) {
+            // Filter the clients based on the search query
+            final filteredClients = clients
+                .where((client) =>
+                    client.name.toLowerCase().contains(filter.toLowerCase()))
+                .map((client) => client.name)
+                .toList();
+
+            return filteredClients;
+          },
+          onChanged: (value) {
+            // Find the client from the list based on the selected name
+            final selectedClient = clients.firstWhere(
+              (client) => client.name == value,
+              orElse: () => UserModel(
+                  id: '',
+                  name: '',
+                  email: '',
+                  role: '',
+                  profilePictureUrl: '',
+                  assignedProjects: [],
+                  emergencyTasks: [],
+                  notifications: [],
+                  phone: '',
+                  whatsappNumber: '',
+                  password: '',
+                  firstLogin: Timestamp.now(),
+                  lastLogin: Timestamp.now(),
+                  dateOfBirth: Timestamp.now(),
+                  createdAt: Timestamp.now(),
+                  updatedAt: Timestamp.now()),
+            );
+
+            // Print the selected client's document ID
+            if (selectedClient.id.isNotEmpty) {
+              // print('Selected Client Document ID: ${selectedClient.id}');
+
+              _clientId.text = selectedClient.id;
+            }
+          },
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please select a client';
+            }
+            return null;
+          },
+        );
+      },
+    );
+  }
+
+  InputDecoration _inputDecoration({
+    required String labelText,
+    required String hintText,
+    required IconData prefixIcon,
+  }) {
+    return InputDecoration(
+      labelText: labelText,
+      hintText: hintText,
+      prefixIcon: Icon(prefixIcon, color: const Color(0xFF4A6CF7)),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.grey.shade300),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.grey.shade300),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFF4A6CF7), width: 2),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.red),
+      ),
+    );
+  }
+
+  Widget _buildSubmitButton(ThemeData theme) {
+    return ElevatedButton(
+      onPressed: () {
+        if (_formKey.currentState!.validate()) {
+          context.read<AdminProjectsBloc>().add(
+                AdminProjectsCreateEvent(
+                  _nameController.text.trim(),
+                  _descriptionController.text.trim(),
+                  _clientId.text.trim(),
+                  '',
+                  const [],
+                  const [],
+                  const [],
+                  const [],
+                  const [],
+                  const [],
+                  const [],
+                  const [],
+                  const [],
+                  0,
+                  DateTime.now(),
+                  DateTime.now(),
+                  DateTime.now(),
+                  DateTime.now(),
+                  const [],
+                ),
+              );
+        }
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFF296FF9),
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        minimumSize: const Size(double.infinity, 50),
+      ),
+      child: Text(
+        'Create Project',
+        style: theme.textTheme.bodyLarge!.copyWith(
+          fontSize: 16.0,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
+        ),
+      ),
     );
   }
 }
