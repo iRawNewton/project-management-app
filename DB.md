@@ -47,6 +47,171 @@ projects (Collection)
       └── updatedAt: Timestamp
 ```
 
+#### Json Structure
+
+```json
+{
+  "projects": {
+    "projectId": {
+      "projectName": "Main Project",
+      "description": "Description of the main project",
+      "managerId": "manager123",
+      "clientId": "client456",
+      "developers": ["userId1", "userId2"],
+      "subProjects": ["subProjectId1", "subProjectId2"],  // Array of dynamic sub-project IDs
+      "progress": 60,
+      "startDate": "2024-01-01",
+      "endDate": "2024-06-01",
+      "paymentModel": "recurring",
+      "payments": ["paymentId1", "paymentId2"],
+      "dueDates": ["dueDateId1", "dueDateId2"],
+      "siteLinks": ["siteLinkId1", "siteLinkId2"],
+      "remarks": ["remarkId1"],
+      "tags": ["tagId1", "tagId2"],
+      "projectHistory": ["historyId1", "historyId2"],
+      "chats": ["chatId1"],
+      "createdAt": "2024-01-01",
+      "updatedAt": "2024-01-01"
+    },
+    "subProjects": {
+      "subProjectId1": {
+        "projectName": "Sub Project 1",
+        "description": "Description of sub-project 1",
+        "managerId": "manager123",
+        "clientId": "client456",
+        "developers": ["userId1"],
+        "mainProjectId": "projectId",  // Link to the main project
+        "progress": 40,
+        "startDate": "2024-02-01",
+        "endDate": "2024-03-01",
+        "paymentModel": "recurring",
+        "payments": ["paymentId3"],
+        "dueDates": ["dueDateId3"],
+        "siteLinks": ["siteLinkId3"],
+        "remarks": ["remarkId2"],
+        "tasks": ["taskId3", "taskId4"],
+        "tags": ["tagId3"],
+        "projectHistory": ["historyId3"],
+        "chats": ["chatId2"],
+        "createdAt": "2024-02-01",
+        "updatedAt": "2024-02-01"
+      },
+      "subProjectId2": {
+        "projectName": "Sub Project 2",
+        "description": "Description of sub-project 2",
+        "managerId": "manager123",
+        "clientId": "client456",
+        "developers": ["userId2"],
+        "mainProjectId": "projectId",  // Link to the main project
+        "progress": 30,
+        "startDate": "2024-03-01",
+        "endDate": "2024-04-01",
+        "paymentModel": "recurring",
+        "payments": ["paymentId4"],
+        "dueDates": ["dueDateId4"],
+        "siteLinks": ["siteLinkId4"],
+        "remarks": ["remarkId3"],
+        "tasks": ["taskId5", "taskId6"],
+        "tags": ["tagId4"],
+        "projectHistory": ["historyId4"],
+        "chats": ["chatId3"],
+        "createdAt": "2024-03-01",
+        "updatedAt": "2024-03-01"
+      }
+    },
+    "tasks": {
+      "taskId1": {
+        "title": "Task 1 for Main Project",
+        "description": "Description of task 1",
+        "assignedTo": ["userId1"],
+        "status": "in-progress",
+        "dueDate": "2024-01-15",
+        "projectId": "projectId",
+        "subProjectId": null  // This is part of the main project
+      },
+      "taskId3": {
+        "title": "Task 1 for Sub Project 1",
+        "description": "Description of task 1 for sub-project",
+        "assignedTo": ["userId1"],
+        "status": "in-progress",
+        "dueDate": "2024-02-15",
+        "projectId": "projectId",
+        "subProjectId": "subProjectId1"  // This task is for sub-project 1
+      },
+      "taskId4": {
+        "title": "Task 2 for Sub Project 1",
+        "description": "Description of task 2 for sub-project",
+        "assignedTo": ["userId1"],
+        "status": "completed",
+        "dueDate": "2024-02-20",
+        "projectId": "projectId",
+        "subProjectId": "subProjectId1"
+      }
+    },
+    "payments": {
+      "paymentId1": {
+        "amount": 1000,
+        "date": "2024-01-10",
+        "status": "completed",
+        "projectId": "projectId"
+      },
+      "paymentId2": {
+        "amount": 2000,
+        "date": "2024-02-10",
+        "status": "completed",
+        "projectId": "projectId"
+      },
+      "paymentId3": {
+        "amount": 500,
+        "date": "2024-02-15",
+        "status": "completed",
+        "projectId": "subProjectId1"
+      }
+    },
+    "dueDates": {
+      "dueDateId1": {
+        "title": "Main Project Phase 1 Due",
+        "date": "2024-02-01",
+        "projectId": "projectId"
+      },
+      "dueDateId3": {
+        "title": "Sub Project 1 Task Due",
+        "date": "2024-02-15",
+        "projectId": "subProjectId1"
+      }
+    },
+    "siteLinks": {
+      "siteLinkId1": {
+        "url": "http://mainprojectsite.com",
+        "username": "admin",
+        "password": "securepassword",
+        "projectId": "projectId"
+      },
+      "siteLinkId3": {
+        "url": "http://subprojectsite.com",
+        "username": "user",
+        "password": "subpassword",
+        "projectId": "subProjectId1"
+      }
+    },
+    "remarks": {
+      "remarkId1": {
+        "comment": "Remark for the main project",
+        "authorId": "userId1",
+        "date": "2024-01-05",
+        "projectId": "projectId"
+      },
+      "remarkId2": {
+        "comment": "Remark for Sub Project 1",
+        "authorId": "userId2",
+        "date": "2024-02-10",
+        "projectId": "subProjectId1"
+      }
+    }
+  }
+}
+```
+
 ### Sub-Projects Collection (Linked to Projects)
 
 ```plaintext
@@ -142,6 +307,96 @@ projectHistory (Collection)
       ├── changeDescription: String
       ├── userId: String  // Who made the change
       ├── createdAt: Timestamp
+```
+
+#### Json Structure
+
+```Json
+"projectHistory": [
+  {
+    "eventType": "Project Created",
+    "timestamp": "2024-01-01T09:00:00Z",
+    "userId": "manager123",
+    "details": "Main project created with initial details.",
+    "oldValue": null,
+    "newValue": {
+      "projectName": "Main Project",
+      "startDate": "2024-01-01",
+      "endDate": "2024-06-01",
+      "clientId": "client456"
+    },
+    "relatedEntity": "Main Project",
+    "status": "Active"
+  },
+  {
+    "eventType": "Task Assigned",
+    "timestamp": "2024-01-05T14:30:00Z",
+    "userId": "manager123",
+    "details": "Assigned 'Task 1' to developer 'userId1'.",
+    "oldValue": null,
+    "newValue": {
+      "taskId": "taskId1",
+      "assignedTo": ["userId1"]
+    },
+    "relatedEntity": "Task 1",
+    "status": "In Progress"
+  },
+  {
+    "eventType": "Payment Received",
+    "timestamp": "2024-01-10T12:00:00Z",
+    "userId": "financeDept001",
+    "details": "Payment of $1000 received for the main project.",
+    "oldValue": {
+      "payments": []
+    },
+    "newValue": {
+      "payments": ["paymentId1"]
+    },
+    "relatedEntity": "Payment",
+    "status": "Completed"
+  },
+  {
+    "eventType": "Deadline Extended",
+    "timestamp": "2024-02-01T10:00:00Z",
+    "userId": "manager123",
+    "details": "Extended the deadline for 'Task 1' from '2024-01-15' to '2024-01-20'.",
+    "oldValue": {
+      "dueDate": "2024-01-15"
+    },
+    "newValue": {
+      "dueDate": "2024-01-20"
+    },
+    "relatedEntity": "Task 1",
+    "status": "In Progress"
+  },
+  {
+    "eventType": "Sub-Project Created",
+    "timestamp": "2024-02-01T16:00:00Z",
+    "userId": "manager123",
+    "details": "Created 'Sub Project 1' under 'Main Project'.",
+    "oldValue": null,
+    "newValue": {
+      "projectName": "Sub Project 1",
+      "mainProjectId": "projectId"
+    },
+    "relatedEntity": "Sub Project 1",
+    "status": "Active"
+  },
+  {
+    "eventType": "Remark Added",
+    "timestamp": "2024-02-10T17:30:00Z",
+    "userId": "userId1",
+    "details": "Added a remark to Sub Project 1: 'Task 1 is going well.'",
+    "oldValue": null,
+    "newValue": {
+      "remarkId": "remarkId1",
+      "comment": "Task 1 is going well."
+    },
+    "relatedEntity": "Sub Project 1",
+    "status": "Completed"
+  }
+]
+
 ```
 
 ### Site Links Collection (Linked to Projects)
