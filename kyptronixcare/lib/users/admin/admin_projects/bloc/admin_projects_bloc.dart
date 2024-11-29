@@ -11,6 +11,7 @@ class AdminProjectsBloc extends Bloc<AdminProjectsEvent, AdminProjectsState> {
   AdminProjectsBloc() : super(AdminProjectsInitial()) {
     on<AdminProjectsEvent>((event, emit) {});
     on<AdminProjectsCreateEvent>(_adminProjectsCreateEvent);
+    on<AdminProjectsReadClientEvent>(_adminProjectsReadClientEvent);
   }
 
   Future<void> _adminProjectsCreateEvent(
@@ -61,6 +62,9 @@ class AdminProjectsBloc extends Bloc<AdminProjectsEvent, AdminProjectsState> {
           'An error occurred while creating the project.'));
     }
   }
+
+  Future<void> _adminProjectsReadClientEvent(AdminProjectsReadClientEvent event,
+      Emitter<AdminProjectsState> emit) async {}
 }
 
 
