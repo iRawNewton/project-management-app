@@ -11,7 +11,13 @@ final class AdminProjectsInitial extends AdminProjectsState {}
 
 class AdminProjectsLoading extends AdminProjectsState {}
 
-class AdminProjectsGetList extends AdminProjectsState {}
+class AdminProjectsGetList extends AdminProjectsState {
+  final List<ProjectModel> projects;
+
+  const AdminProjectsGetList(this.projects);
+  @override
+  List<Object> get props => [projects];
+}
 
 class AdminProjectsCreatedSuccessfully extends AdminProjectsState {
   final String docRefId;

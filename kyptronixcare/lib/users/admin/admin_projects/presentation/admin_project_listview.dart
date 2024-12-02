@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/widgets/custom_appbar.dart';
+import '../bloc/admin_projects_bloc.dart';
 import 'admin_create_project.dart';
 import 'admin_project_view.dart';
 
@@ -45,48 +47,73 @@ class SubProject {
   });
 }
 
-class AdminProjectListview extends StatelessWidget {
+class AdminProjectListview extends StatefulWidget {
   const AdminProjectListview({super.key});
 
   @override
+  State<AdminProjectListview> createState() => _AdminProjectListviewState();
+}
+
+class _AdminProjectListviewState extends State<AdminProjectListview> {
+  @override
+  void initState() {
+    context.read<AdminProjectsBloc>().add(AdminProjectsReadEvent());
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: Theme.of(context).copyWith(
-        cardTheme: CardTheme(
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.0),
-          ),
+    return SafeArea(
+      child: Scaffold(
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const AdminCreateProject(),
+              ),
+            );
+          },
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          child: const Icon(Icons.add),
         ),
-      ),
-      child: SafeArea(
-        child: Scaffold(
-          floatingActionButton: FloatingActionButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const AdminCreateProject(),
-                ),
-              );
-            },
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            child: const Icon(Icons.add),
-          ),
-          body: SingleChildScrollView(
-            child: Column(
-              children: [
-                const CustomAppbar(title: 'Projects'),
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  padding: const EdgeInsets.all(16),
-                  itemBuilder: (context, index) =>
-                      ProjectCard(project: sampleProjects[index]),
-                  itemCount: sampleProjects.length,
-                ),
-              ],
-            ),
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              const CustomAppbar(title: 'Projects'),
+              BlocConsumer<AdminProjectsBloc, AdminProjectsState>(
+                listener: (context, state) {
+                  // TODO: implement listener
+                },
+                buildWhen: (previous, current) {
+                  return current is AdminProjectsReadEvent;
+                },
+                listenWhen: (previous, current) {
+                  return current is AdminProjectsReadEvent;
+                },
+                builder: (context, state) {
+                  if (state is AdminProjectsLoading) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  } else if (state is AdminProjectsGetList) {
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      padding: const EdgeInsets.all(16),
+                      itemBuilder: (context, index) =>
+                          ProjectCard(project: sampleProjects[index]),
+                      itemCount: sampleProjects.length,
+                    );
+                  } else {
+                    return Text(
+                      'Oops looks like we hit a snag',
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    );
+                  }
+                },
+              ),
+            ],
           ),
         ),
       ),
@@ -485,10 +512,29 @@ class _ProjectCardState extends State<ProjectCard>
   }
 
   Color _getProgressColor(double progress, ColorScheme colorScheme) {
-    if (progress >= 0.75) return Colors.green;
-    if (progress >= 0.5) return colorScheme.primary;
-    if (progress >= 0.25) return Colors.orange;
-    return Colors.red;
+    if (progress >= 0.9) {
+      return const Color(0xff00E676);
+    }
+    if (progress >= 0.75) {
+      return const Color(0xff66BB6A);
+    }
+    if (progress >= 0.6) {
+      return const Color(0xff9CCC65);
+    }
+    if (progress >= 0.5) {
+      return colorScheme.primary;
+    }
+    if (progress >= 0.4) {
+      return const Color(0xffFFEB3B);
+    }
+    if (progress >= 0.3) return const Color(0xffFF9800);
+    if (progress >= 0.2) {
+      return const Color(0xffFF5722);
+    }
+    if (progress >= 0.1) {
+      return const Color(0xffD50000);
+    }
+    return const Color(0xffF44336);
   }
 }
 
