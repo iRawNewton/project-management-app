@@ -7,7 +7,10 @@ class ProjectModel {
   final String description;
   final String clientId;
   final List<String> developers; // List of developer IDs
+  final List<String> managers; // List of manager IDs
   List<UserModel> developersDetails; // List of developer details
+  List<UserModel> managersDetails; // List of manager details
+  UserModel? clientDetails; // Client details (1 client per project)
   final List<String>? subProjects;
   final int? progress;
   final List<String>? payments;
@@ -30,7 +33,10 @@ class ProjectModel {
     required this.description,
     required this.clientId,
     required this.developers,
+    required this.managers,
     this.developersDetails = const [],
+    this.managersDetails = const [],
+    this.clientDetails,
     this.subProjects,
     this.progress,
     this.payments,
@@ -55,6 +61,7 @@ class ProjectModel {
       'description': description,
       'clientId': clientId,
       'developers': developers,
+      'managers': managers,
       'subProjects': subProjects,
       'progress': progress,
       'payments': payments,
@@ -82,7 +89,10 @@ class ProjectModel {
         description: map['description'] ?? '',
         clientId: map['clientId'] ?? '',
         developers: List<String>.from(map['developers'] ?? []),
+        managers: List<String>.from(map['managers'] ?? []),
         developersDetails: [], // Start with an empty list for developer details
+        managersDetails: [], // Start with an empty list for manager details
+        clientDetails: null, // We will fetch the client details separately
         subProjects: List<String>.from(map['subProjects'] ?? []),
         progress: map['progress'] ?? 0,
         payments: List<String>.from(map['payments'] ?? []),

@@ -70,7 +70,6 @@ class AdminProjectsBloc extends Bloc<AdminProjectsEvent, AdminProjectsState> {
   Future<void> _adminProjectsReadEvent(
       AdminProjectsReadEvent event, Emitter<AdminProjectsState> emit) async {
     try {
-      print('object');
       // Emit loading state while fetching the data
       emit(AdminProjectsLoading());
 
@@ -88,32 +87,63 @@ class AdminProjectsBloc extends Bloc<AdminProjectsEvent, AdminProjectsState> {
         // Create a project model (assuming you have a ProjectModel for handling project data)
         ProjectModel project = ProjectModel.fromMap(projectDoc.id, projectData);
 
-        // Create a list to store developers' details
+        // Create lists to store user details
         List<UserModel> developers = [];
+        List<UserModel> managers = [];
+        UserModel? client;
 
         // Fetch the details for each developer
         for (var developerId in project.developers) {
-          // Fetch the user details from the users collection
           var userDoc = await FirebaseFirestore.instance
               .collection('users')
               .doc(developerId)
               .get();
 
           if (userDoc.exists) {
-            // Add the user data to the developers list
             UserModel developer =
                 UserModel.fromMap(developerId, userDoc.data()!);
             developers.add(developer);
           }
         }
 
-        project.developersDetails = developers;
+        // Fetch the details for each manager
+        for (var managerId in project.managers) {
+          var userDoc = await FirebaseFirestore.instance
+              .collection('users')
+              .doc(managerId)
+              .get();
 
+          if (userDoc.exists) {
+            UserModel manager = UserModel.fromMap(managerId, userDoc.data()!);
+            managers.add(manager);
+          }
+        }
+
+        // Fetch the client details
+        if (project.clientId.isNotEmpty) {
+          var userDoc = await FirebaseFirestore.instance
+              .collection('users')
+              .doc(project.clientId)
+              .get();
+
+          if (userDoc.exists) {
+            client = UserModel.fromMap(project.clientId, userDoc.data()!);
+          }
+        }
+
+        // Assign the details to the project model
+        project.developersDetails = developers;
+        project.managersDetails = managers;
+        project.clientDetails = client;
+
+        // Add the project to the list
         projects.add(project);
       }
 
+      // Emit the list of projects after successfully fetching and processing the data
       emit(AdminProjectsGetList(projects));
     } catch (error) {
+      // Handle errors by emitting the failure state
       emit(AdminProjectsCreateFailed(error.toString()));
     }
   }

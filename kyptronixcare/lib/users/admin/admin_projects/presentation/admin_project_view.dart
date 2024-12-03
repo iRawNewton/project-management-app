@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
+import '../../../model/projects_model.dart';
+import 'admin_project_listview.dart';
 
 // import '../widgets/sub_project_view.dart';
 
@@ -48,8 +52,8 @@ class ColorPalette {
 }
 
 class ProjectPage extends StatefulWidget {
-  const ProjectPage({super.key});
-
+  const ProjectPage({super.key, required this.project});
+  final ProjectModel project;
   @override
   State<ProjectPage> createState() => _ProjectPageState();
 }
@@ -157,7 +161,7 @@ class _ProjectPageState extends State<ProjectPage>
                         children: [
                           _buildGlassContainer(
                             child: Text(
-                              'Project Name',
+                              widget.project.projectName,
                               style: GoogleFonts.poppins(
                                 fontSize: 28,
                                 fontWeight: FontWeight.bold,
@@ -176,7 +180,10 @@ class _ProjectPageState extends State<ProjectPage>
                                         color: Colors.white, size: 16),
                                     const SizedBox(width: 8),
                                     Text(
-                                      'Jan 2024 - Dec 2024',
+                                      // 'Jan 2024 - Dec 2024',
+                                      '${DateFormat('MMM yyyy').format(widget.project.startDate!.toDate())}'
+                                      ' - '
+                                      '${DateFormat('MMM yyyy').format(widget.project.endDate!.toDate())}',
                                       style: GoogleFonts.poppins(
                                         color: Colors.white,
                                         fontSize: 14,

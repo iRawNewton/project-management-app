@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/widgets/custom_appbar.dart';
+import '../../../model/projects_model.dart';
 import '../bloc/admin_projects_bloc.dart';
 import 'admin_create_project.dart';
 import 'admin_project_view.dart';
@@ -63,6 +64,7 @@ class _AdminProjectListviewState extends State<AdminProjectListview> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return SafeArea(
       child: Scaffold(
         floatingActionButton: FloatingActionButton(
@@ -85,12 +87,14 @@ class _AdminProjectListviewState extends State<AdminProjectListview> {
                 listener: (context, state) {
                   // TODO: implement listener
                 },
-                buildWhen: (previous, current) {
-                  return current is AdminProjectsReadEvent;
-                },
-                listenWhen: (previous, current) {
-                  return current is AdminProjectsReadEvent;
-                },
+                // buildWhen: (previous, current) {
+                //   return previous is AdminProjectsReadEvent ||
+                //       current is AdminProjectsReadEvent;
+                // },
+                // listenWhen: (previous, current) {
+                //   return previous is AdminProjectsReadEvent ||
+                //       current is AdminProjectsReadEvent;
+                // },
                 builder: (context, state) {
                   if (state is AdminProjectsLoading) {
                     return const Center(
@@ -101,18 +105,78 @@ class _AdminProjectListviewState extends State<AdminProjectListview> {
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       padding: const EdgeInsets.all(16),
-                      itemBuilder: (context, index) =>
-                          ProjectCard(project: sampleProjects[index]),
-                      itemCount: sampleProjects.length,
+                      itemCount: state.projects.length,
+                      itemBuilder: (context, index) {
+                        return ProjectCard(
+                          project: state.projects[index],
+                        );
+                      },
                     );
                   } else {
-                    return Text(
-                      'Oops looks like we hit a snag',
-                      style: Theme.of(context).textTheme.bodyLarge,
+                    return SizedBox(
+                      height: MediaQuery.sizeOf(context).height,
+                      child: Center(
+                        child: Container(
+                          height: 250.0, // Adjust the height as needed
+                          width: MediaQuery.sizeOf(context).width * 0.8,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12.0),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                spreadRadius: 5,
+                                blurRadius: 10,
+                                offset: const Offset(0, 4), // Shadow position
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const SizedBox(),
+                              Icon(
+                                Icons.warning_amber_rounded,
+                                color: theme.colorScheme.primary,
+                                size: 50.0,
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Text(
+                                  'Oops looks like we hit a snag',
+                                  style: theme.textTheme.bodyLarge,
+                                  textAlign:
+                                      TextAlign.center, // Centers the text
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16.0, vertical: 8.0),
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    context
+                                        .read<AdminProjectsBloc>()
+                                        .add(AdminProjectsReadEvent());
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    minimumSize:
+                                        const Size(double.infinity, 50),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12.0),
+                                    ),
+                                  ),
+                                  child: const Text('Try Again'),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     );
                   }
                 },
               ),
+              const SizedBox(),
             ],
           ),
         ),
@@ -121,8 +185,18 @@ class _AdminProjectListviewState extends State<AdminProjectListview> {
   }
 }
 
+class TestWidget extends StatelessWidget {
+  final ProjectModel project;
+  const TestWidget({super.key, required this.project});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(project.id);
+  }
+}
+
 class ProjectCard extends StatefulWidget {
-  final Project project;
+  final ProjectModel project;
 
   const ProjectCard({super.key, required this.project});
 
@@ -203,7 +277,7 @@ class _ProjectCardState extends State<ProjectCard>
                   children: [
                     Expanded(
                       child: Text(
-                        widget.project.name,
+                        widget.project.projectName,
                         style: theme.textTheme.bodyLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                           fontSize: 20.0,
@@ -211,7 +285,8 @@ class _ProjectCardState extends State<ProjectCard>
                         ),
                       ),
                     ),
-                    _buildPaymentModelChip(widget.project.paymentModel, theme),
+                    _buildPaymentModelChip(
+                        widget.project.paymentModel ?? 'Not Assigned', theme),
                   ],
                 ),
                 const SizedBox(height: 8.0),
@@ -229,7 +304,7 @@ class _ProjectCardState extends State<ProjectCard>
                           ),
                         ),
                         Text(
-                          '${(widget.project.progress * 100).toInt()}%',
+                          '${(widget.project.progress ?? 0 * 100).toInt()}%',
                           style: theme.textTheme.bodyLarge!.copyWith(
                             color: Colors.white,
                             fontSize: 14.0,
@@ -241,11 +316,12 @@ class _ProjectCardState extends State<ProjectCard>
                     ClipRRect(
                       borderRadius: BorderRadius.circular(4),
                       child: LinearProgressIndicator(
-                        value: widget.project.progress,
+                        value: double.parse(widget.project.progress.toString()),
                         backgroundColor: colorScheme.primary.withOpacity(0.2),
                         valueColor: AlwaysStoppedAnimation<Color>(
                           _getProgressColor(
-                              widget.project.progress, colorScheme),
+                              double.parse(widget.project.progress.toString()),
+                              colorScheme),
                         ),
                         minHeight: 8,
                       ),
@@ -257,28 +333,31 @@ class _ProjectCardState extends State<ProjectCard>
                 _buildDetailRow(
                   Icons.person,
                   'Client',
-                  widget.project.client,
+                  widget.project.clientDetails!.name,
                   theme,
                 ),
                 const SizedBox(height: 4),
                 _buildDetailRow(
                   Icons.manage_accounts,
                   'Manager',
-                  widget.project.manager,
+                  // 'widget.project.managersDetails',
+                  'John Doe',
                   theme,
                 ),
                 const SizedBox(height: 4),
                 _buildDetailRow(
                   Icons.calendar_today,
                   'Timeline',
-                  '${DateFormat('MMM d, y').format(widget.project.startDate)} - ${DateFormat('MMM d, y').format(widget.project.endDate)}',
+                  '${DateFormat('MMM d, y').format(widget.project.startDate!.toDate())} - '
+                      '${DateFormat('MMM d, y').format(widget.project.endDate!.toDate())}',
                   theme,
                 ),
                 const SizedBox(height: 4),
                 _buildDetailRow(
                   Icons.update,
                   'Last Updated',
-                  DateFormat('MMM d, y').format(widget.project.lastUpdated),
+                  DateFormat('MMM d, y')
+                      .format(widget.project.updatedAt.toDate()),
                   theme,
                 ),
                 Padding(
@@ -290,9 +369,13 @@ class _ProjectCardState extends State<ProjectCard>
                     ),
                     onPressed: () {
                       Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const ProjectPage()));
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ProjectPage(
+                            project: widget.project,
+                          ),
+                        ),
+                      );
                     },
                     label: Text(
                       'Click To View',
@@ -313,8 +396,9 @@ class _ProjectCardState extends State<ProjectCard>
               ],
             ),
           ),
-          // Sub-projects Section
-          if (widget.project.subProjects.isNotEmpty)
+          // TODO: Sub-projects Section
+          /*
+          if (widget.project.subProjects!.isNotEmpty)
             Column(
               children: [
                 InkWell(
@@ -360,6 +444,7 @@ class _ProjectCardState extends State<ProjectCard>
                 ),
               ],
             ),
+       */
         ],
       ),
     );
