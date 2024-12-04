@@ -36,7 +36,7 @@ class AdminProjectsBloc extends Bloc<AdminProjectsEvent, AdminProjectsState> {
         'endDate': null,
         'paymentModel': null,
         'payments': [],
-        'dueDates': [],
+        'dueDates': null,
         'siteLinks': [],
         'remarks': [],
         'tasks': [],
@@ -147,35 +147,222 @@ class AdminProjectsBloc extends Bloc<AdminProjectsEvent, AdminProjectsState> {
       emit(AdminProjectsCreateFailed(error.toString()));
     }
   }
-}
-
 
 /*
+Future<void> _convertProjectToSubProjects(
+    AdminProjectsConvertToSubProjectsEvent event,
+    Emitter<AdminProjectsState> emit,
+  ) async {
+    emit(AdminProjectsLoading());
 
-projects (Collection)
+    try {
+      // Reference to Firestore collections
+      final projectRef = FirebaseFirestore.instance.collection('projects');
+      final subProjectRef =
+          FirebaseFirestore.instance.collection('subProjects');
+      final taskRef = FirebaseFirestore.instance.collection('tasks');
+      final tagRef = FirebaseFirestore.instance.collection('tags');
+      final taskRemarkRef =
+          FirebaseFirestore.instance.collection('taskRemarks');
+      final remarkRef = FirebaseFirestore.instance.collection('remarks');
+      final projectHistoryRef =
+          FirebaseFirestore.instance.collection('projectHistory');
+      final siteLinkRef = FirebaseFirestore.instance.collection('siteLinks');
+      final paymentRef = FirebaseFirestore.instance.collection('payments');
+      final dueDateRef = FirebaseFirestore.instance.collection('dueDates');
 
-projectName: String
-description: String
+      // Fetch the parent project
+      final parentProject = await projectRef.doc(event.projectId).get();
+      if (!parentProject.exists) {
+        emit(const AdminProjectsCreateFailed('Parent project not found.'));
+        return;
+      }
 
-clientId: String  
-developers: [userId]  
-subProjects: [subProjectId] 
-progress: Number  // Overall project progress (0 to 100)
-startDate: Timestamp
-endDate: Timestamp
-paymentModel: String  // (one-time, recurring)
-payments: [paymentId]  // List of payment records
+      // Prepare the sub-project data (copy relevant fields)
+      final subProjectData = {
+        'parentProjectId': event.projectId,
+        'subProjectName': event.subProjectName,
+        'developers': [], // Can add developers if provided
+        'progress': 0, // Default progress
+        'startDate': parentProject['startDate'] ?? null,
+        'endDate': parentProject['endDate'] ?? null,
+        'tasks': [], // Tasks will be populated with task IDs later
+        'remarks': [], // Remarks will be populated with remark IDs later
+        'tags': [], // Tags will be populated with tag IDs later
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
 
-dueDates: [dueDateId]  // List of due dates
+      // Add the sub-project to Firestore
+      final subProjectDoc = await subProjectRef.add(subProjectData);
 
-siteLinks: [siteLinkId]  // List of site links with user ID and password
-remarks: [remarkId]  // List of remark IDs for developer updates
-tasks: [taskId]  // Task breakdown for the project
-tags: [tagId]  // List of tag IDs associated with the project
-projectHistory: [historyId]  // Historical changes for the project
-chats: [chatId]  // List of chat IDs for project-specific conversations
-createdAt: Timestamp
-updatedAt: Timestamp
+      // Fetch and copy associated tasks
+      final tasksQuerySnapshot =
+          await taskRef.where('projectId', isEqualTo: event.projectId).get();
 
+      List<String> taskIds = [];
+      for (var task in tasksQuerySnapshot.docs) {
+        // Prepare new task data for the sub-project
+        final taskData = task.data();
+        final newTaskData = {
+          'taskName': taskData['taskName'],
+          'description': taskData['description'],
+          'assignedTo': taskData['assignedTo'],
+          'projectId': taskData['projectId'],
+          'subProjectId': subProjectDoc.id, // Reference to new sub-project
+          'emergency': taskData['emergency'] ?? false,
+          'progress': taskData['progress'] ?? 0,
+          'status': taskData['status'],
+          'dueDate': taskData['dueDate'],
+          'remarks': taskData['remarks'] ?? [],
+          'createdAt': taskData['createdAt'],
+          'updatedAt': taskData['updatedAt'],
+        };
+        final newTaskDoc = await taskRef.add(newTaskData);
+        taskIds.add(newTaskDoc.id);
+      }
 
+      // Update sub-project with task IDs
+      await subProjectDoc.update({'tasks': taskIds});
+
+      // Fetch and copy associated tags
+      final tagsQuerySnapshot =
+          await tagRef.where('projectId', isEqualTo: event.projectId).get();
+
+      List<String> tagIds = [];
+      for (var tag in tagsQuerySnapshot.docs) {
+        final tagData = tag.data();
+        final newTagData = {
+          'tagName': tagData['tagName'],
+          'createdAt': tagData['createdAt'],
+          'updatedAt': tagData['updatedAt'],
+        };
+        final newTagDoc = await tagRef.add(newTagData);
+        tagIds.add(newTagDoc.id);
+      }
+
+      // Update sub-project with tag IDs
+      await subProjectDoc.update({'tags': tagIds});
+
+      // Fetch and copy associated remarks
+      final remarksQuerySnapshot =
+          await remarkRef.where('projectId', isEqualTo: event.projectId).get();
+
+      List<String> remarkIds = [];
+      for (var remark in remarksQuerySnapshot.docs) {
+        final remarkData = remark.data();
+        final newRemarkData = {
+          'projectId': remarkData['projectId'],
+          'subProjectId': subProjectDoc.id,
+          'userId': remarkData['userId'],
+          'userRole': remarkData['userRole'],
+          'remarkText': remarkData['remarkText'],
+          'createdAt': remarkData['createdAt'],
+        };
+        final newRemarkDoc = await remarkRef.add(newRemarkData);
+        remarkIds.add(newRemarkDoc.id);
+      }
+
+      // Update sub-project with remark IDs
+      await subProjectDoc.update({'remarks': remarkIds});
+
+      // Create project history entry
+      final projectHistoryData = {
+        'projectId': event.projectId,
+        'changeType': 'subProjectCreated',
+        'changeDescription': 'Sub-project created: ${event.subProjectName}',
+        'userId': event.userId, // Assuming you are passing a userId
+        'createdAt': FieldValue.serverTimestamp(),
+      };
+      await projectHistoryRef.add(projectHistoryData);
+
+      // Handle siteLinks, payments, and dueDates (optional, if any)
+      // Fetch and transfer Site Links
+      final siteLinksQuerySnapshot = await siteLinkRef
+          .where('projectId', isEqualTo: event.projectId)
+          .get();
+
+      List<String> siteLinkIds = [];
+      for (var siteLink in siteLinksQuerySnapshot.docs) {
+        final siteLinkData = siteLink.data();
+        final newSiteLinkData = {
+          'projectId': event.projectId,
+          'siteUrl': siteLinkData['siteUrl'],
+          'userId': siteLinkData['userId'],
+          'password': siteLinkData['password'],
+          'createdAt': siteLinkData['createdAt'],
+          'updatedAt': siteLinkData['updatedAt'],
+        };
+        final newSiteLinkDoc = await siteLinkRef.add(newSiteLinkData);
+        siteLinkIds.add(newSiteLinkDoc.id);
+      }
+
+      // Clear the Site Links from the parent project
+      for (var siteLink in siteLinksQuerySnapshot.docs) {
+        await siteLink.reference.delete();
+      }
+
+      // Fetch and transfer Payments
+      final paymentsQuerySnapshot =
+          await paymentRef.where('projectId', isEqualTo: event.projectId).get();
+
+      List<String> paymentIds = [];
+      for (var payment in paymentsQuerySnapshot.docs) {
+        final paymentData = payment.data();
+        final newPaymentData = {
+          'projectId': event.projectId,
+          'amountReceived': paymentData['amountReceived'],
+          'receivedOn': paymentData['receivedOn'],
+          'paymentMethod': paymentData['paymentMethod'],
+          'dueDateId': paymentData['dueDateId'],
+          'createdAt': paymentData['createdAt'],
+          'updatedAt': paymentData['updatedAt'],
+        };
+        final newPaymentDoc = await paymentRef.add(newPaymentData);
+        paymentIds.add(newPaymentDoc.id);
+      }
+
+      // Clear the Payments from the parent project
+      for (var payment in paymentsQuerySnapshot.docs) {
+        await payment.reference.delete();
+      }
+
+      // Fetch and transfer Due Dates
+      final dueDatesQuerySnapshot =
+          await dueDateRef.where('projectId', isEqualTo: event.projectId).get();
+
+      List<String> dueDateIds = [];
+      for (var dueDate in dueDatesQuerySnapshot.docs) {
+        final dueDateData = dueDate.data();
+        final newDueDateData = {
+          'projectId': event.projectId,
+          'dueDate': dueDateData['dueDate'],
+          'missedCount': dueDateData['missedCount'],
+          'cleared': dueDateData['cleared'],
+          'createdAt': dueDateData['createdAt'],
+          'updatedAt': dueDateData['updatedAt'],
+        };
+        final newDueDateDoc = await dueDateRef.add(newDueDateData);
+        dueDateIds.add(newDueDateDoc.id);
+      }
+
+      // Clear the Due Dates from the parent project
+      for (var dueDate in dueDatesQuerySnapshot.docs) {
+        await dueDate.reference.delete();
+      }
+
+      // Update sub-project with site link, payment, and due date references
+      await subProjectDoc.update({
+        'siteLinks': siteLinkIds,
+        'payments': paymentIds,
+        'dueDates': dueDateIds,
+      });
+
+      emit(AdminProjectsCreatedSuccessfully(subProjectDoc.id));
+    } catch (e) {
+      emit(const AdminProjectsCreateFailed(
+          'An error occurred while converting the project.'));
+    }
+  }
 */
+}
