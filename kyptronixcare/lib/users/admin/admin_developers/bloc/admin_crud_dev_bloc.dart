@@ -36,7 +36,7 @@ class AdminCrudDevBloc extends Bloc<AdminCrudDevEvent, AdminCrudDevState> {
         name: event.name,
         email: event.email,
         categoryRole: event.roleType,
-        role: event.role,
+        role: 'Developer',
         profilePictureUrl: '',
         assignedProjects: [],
         emergencyTasks: [],
@@ -69,24 +69,24 @@ class AdminCrudDevBloc extends Bloc<AdminCrudDevEvent, AdminCrudDevState> {
       GetUserDevEvent event, Emitter<AdminCrudDevState> emit) async {
     emit(AdminCrudDevLoading());
     try {
-      // Query Firestore for users whose role is one of 'admin', 'projectManager', or 'client'
-      QuerySnapshot querySnapshot = await _firestore.collection('users').where(
-          'role',
-          isNotEqualTo: ['admin', 'projectManager', 'client']).get();
+      QuerySnapshot adminQuerySnapshot = await _firestore
+          .collection('users')
+          .where('role', isEqualTo: 'Developer')
+          .get();
 
       // Filter out users with these roles
-      List<UserModel> adminUsers = querySnapshot.docs
-          .where((doc) =>
-              !['admin', 'projectManager', 'client'].contains(doc['role']))
-          .map((doc) =>
-              UserModel.fromMap(doc.id, doc.data() as Map<String, dynamic>))
-          .toList();
 
       // If no users are found, emit an error
-      if (adminUsers.isEmpty) {
+      if (adminQuerySnapshot.docs.isEmpty) {
         emit(const AdminCrudDevError('No users found.'));
         return;
       }
+
+      // Convert the documents to a list of UserModel
+      List<UserModel> adminUsers = adminQuerySnapshot.docs
+          .map((doc) =>
+              UserModel.fromMap(doc.id, doc.data() as Map<String, dynamic>))
+          .toList();
 
       // Emit the fetched user data
       emit(AdminCrudDevUserFetched(adminUsers));

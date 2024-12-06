@@ -29,6 +29,9 @@ class _ProjectPageState extends State<ProjectPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+
+    // Set the initial tab index to 2 (third tab)
+    // _tabController.index = 2;
     _scrollController.addListener(_scrollListener);
   }
 
@@ -129,7 +132,7 @@ class _ProjectPageState extends State<ProjectPage>
                         children: [
                           GlassContainer(
                             child: Text(
-                              widget.project.projectName,
+                              widget.project.id,
                               style: GoogleFonts.poppins(
                                 fontSize: 28,
                                 fontWeight: FontWeight.bold,
@@ -138,46 +141,51 @@ class _ProjectPageState extends State<ProjectPage>
                             ),
                           ),
                           const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              GlassContainer(
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(Icons.calendar_today,
-                                        color: Colors.white, size: 16),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      // 'Jan 2024 - Dec 2024',
-                                      '${DateFormat('MMM yyyy').format(widget.project.startDate!.toDate())}'
-                                      ' - '
-                                      '${DateFormat('MMM yyyy').format(widget.project.endDate!.toDate())}',
-                                      style: GoogleFonts.poppins(
-                                        color: Colors.white,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const Gap(12.0),
-                              GlassContainer(
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: [
+                                GlassContainer(
                                   child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(Icons.link,
-                                      color: Colors.white, size: 16),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Visit Project',
-                                    style: GoogleFonts.poppins(
-                                      color: Colors.white,
-                                      fontSize: 14,
-                                    ),
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.calendar_today,
+                                          color: Colors.white, size: 16),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        // 'Jan 2024 - Dec 2024',
+                                        '${DateFormat('MMM yyyy').format(widget.project.startDate!.toDate())}'
+                                        ' - '
+                                        '${DateFormat('MMM yyyy').format(widget.project.endDate!.toDate())}',
+                                        style: GoogleFonts.poppins(
+                                          color: Colors.white,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              )),
-                            ],
+                                ),
+                                const Gap(12.0),
+                                GlassContainer(
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.link,
+                                          color: Colors.white, size: 16),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Visit Project',
+                                        style: GoogleFonts.poppins(
+                                          color: Colors.white,
+                                          fontSize: 14,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -231,6 +239,7 @@ class _ProjectPageState extends State<ProjectPage>
                           ConvertProjectType(
                             currentProjectType: 'Single Project Type',
                             onConversionConfirmed: _handleConversion,
+                            projectModel: widget.project,
                           ),
                           OverviewTab(isDark: isDark, project: widget.project),
                         ],
@@ -259,7 +268,12 @@ class _ProjectPageState extends State<ProjectPage>
                         ),
                       ],
                     ),
-              TeamTab(isDark: isDark),
+              TeamTab(
+                isDark: isDark,
+                developersDetails: widget.project.developersDetails,
+                managerDetails: widget.project.managersDetails,
+                projectId: widget.project.id,
+              ),
               TasksTab(isDark: isDark),
               FinanceTab(isDark: isDark),
             ],

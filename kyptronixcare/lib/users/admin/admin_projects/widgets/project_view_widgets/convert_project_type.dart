@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kyptronixcare/users/admin/admin_projects/bloc/admin_projects_bloc.dart';
+import 'package:kyptronixcare/users/model/projects_model.dart';
 
 import 'color_palette.dart';
 
 class ConvertProjectType extends StatelessWidget {
   final String currentProjectType;
   final Function(bool) onConversionConfirmed;
+  final ProjectModel projectModel;
 
   const ConvertProjectType({
     super.key,
     required this.currentProjectType,
     required this.onConversionConfirmed,
+    required this.projectModel,
   });
 
   void _showConversionDialog(BuildContext context) {
@@ -67,7 +72,10 @@ class ConvertProjectType extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                // Navigator.of(context).pop();
+                context
+                    .read<AdminProjectsBloc>()
+                    .add(AdminProjectsConvertToSubProjectsEvent(projectModel));
                 // Add your conversion logic here
                 // For example: _convertToMultipleProjects();
               },
@@ -88,6 +96,8 @@ class ConvertProjectType extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -116,28 +126,26 @@ class ConvertProjectType extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Convert to Multiple Project Type',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
+                      Text(
+                        'Current Type: $currentProjectType',
+                        style: theme.textTheme.bodyLarge!.copyWith(
+                          fontSize: 18.0,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Current Type: $currentProjectType',
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 14,
+                        'Click to Convert to Multiple Project Type',
+                        style: theme.textTheme.bodyLarge!.copyWith(
+                          fontSize: 14.0,
                         ),
                       ),
                     ],
                   ),
                 ),
-                const Icon(
+                Icon(
                   Icons.swap_horiz,
-                  color: Colors.white,
+                  color: isDarkMode ? Colors.white : Colors.black,
                   size: 30,
                 )
               ],

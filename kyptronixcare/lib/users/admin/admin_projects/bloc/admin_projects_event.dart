@@ -74,3 +74,22 @@ class AdminProjectsReadEvent extends AdminProjectsEvent {}
 class AdminProjectsUpdateEvent extends AdminProjectsEvent {}
 
 class AdminProjectsDeleteEvent extends AdminProjectsEvent {}
+
+class AdminProjectsConvertToSubProjectsEvent extends AdminProjectsEvent {
+  final ProjectModel projects;
+
+  const AdminProjectsConvertToSubProjectsEvent(this.projects);
+  @override
+  List<Object> get props => [projects];
+}
+
+class AdminProjectsAssignTeamEvent extends AdminProjectsEvent {
+  final String userIds, projectId;
+  final bool isDeveloper;
+
+  const AdminProjectsAssignTeamEvent(
+      this.userIds, this.isDeveloper, this.projectId);
+
+  @override
+  List<Object> get props => [userIds, isDeveloper, projectId];
+}

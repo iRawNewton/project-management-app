@@ -84,7 +84,7 @@ class _AdminClientListviewState extends State<AdminClientListview> {
                             );
                           },
                           child: Text(
-                            'Add Manager',
+                            'Add Client',
                             style: theme.textTheme.bodyLarge!.copyWith(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -185,7 +185,7 @@ class _AdminClientListviewState extends State<AdminClientListview> {
               ),
             );
           },
-          tooltip: 'Add Manager',
+          tooltip: 'Add Client',
           child: const Icon(Icons.add),
         ),
       ),

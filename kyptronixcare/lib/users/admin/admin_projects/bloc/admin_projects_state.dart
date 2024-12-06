@@ -36,3 +36,15 @@ class AdminProjectsCreateFailed extends AdminProjectsState {
   @override
   List<Object> get props => [errorMessage];
 }
+
+class AdminProjectsTeamUpdateLoading extends AdminProjectsState {}
+
+class AdminProjectsTeamUpdateSuccess extends AdminProjectsState {}
+
+class AdminProjectsTeamUpdateFailure extends AdminProjectsState {
+  final String errorMessage;
+
+  const AdminProjectsTeamUpdateFailure(this.errorMessage);
+  @override
+  List<Object> get props => [errorMessage];
+}

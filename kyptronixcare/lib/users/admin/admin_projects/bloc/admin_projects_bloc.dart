@@ -15,6 +15,8 @@ class AdminProjectsBloc extends Bloc<AdminProjectsEvent, AdminProjectsState> {
     on<AdminProjectsEvent>((event, emit) {});
     on<AdminProjectsCreateEvent>(_adminProjectsCreateEvent);
     on<AdminProjectsReadEvent>(_adminProjectsReadEvent);
+    on<AdminProjectsConvertToSubProjectsEvent>(_convertProjectToSubProjects);
+    on<AdminProjectsAssignTeamEvent>(_adminProjectsAssignTeamEvent);
   }
 
   Future<void> _adminProjectsCreateEvent(
@@ -148,11 +150,11 @@ class AdminProjectsBloc extends Bloc<AdminProjectsEvent, AdminProjectsState> {
     }
   }
 
-/*
-Future<void> _convertProjectToSubProjects(
+  Future<void> _convertProjectToSubProjects(
     AdminProjectsConvertToSubProjectsEvent event,
     Emitter<AdminProjectsState> emit,
   ) async {
+    print('object');
     emit(AdminProjectsLoading());
 
     try {
@@ -172,7 +174,7 @@ Future<void> _convertProjectToSubProjects(
       final dueDateRef = FirebaseFirestore.instance.collection('dueDates');
 
       // Fetch the parent project
-      final parentProject = await projectRef.doc(event.projectId).get();
+      final parentProject = await projectRef.doc(event.projects.id).get();
       if (!parentProject.exists) {
         emit(const AdminProjectsCreateFailed('Parent project not found.'));
         return;
@@ -180,15 +182,15 @@ Future<void> _convertProjectToSubProjects(
 
       // Prepare the sub-project data (copy relevant fields)
       final subProjectData = {
-        'parentProjectId': event.projectId,
-        'subProjectName': event.subProjectName,
-        'developers': [], // Can add developers if provided
-        'progress': 0, // Default progress
-        'startDate': parentProject['startDate'] ?? null,
-        'endDate': parentProject['endDate'] ?? null,
-        'tasks': [], // Tasks will be populated with task IDs later
-        'remarks': [], // Remarks will be populated with remark IDs later
-        'tags': [], // Tags will be populated with tag IDs later
+        'parentProjectId': event.projects.id,
+        'subProjectName': 'Sub Project 1',
+        'developers': event.projects.developers,
+        'progress': event.projects.progress,
+        'startDate': parentProject['startDate'],
+        'endDate': parentProject['endDate'],
+        'tasks': event.projects.tasks,
+        'remarks': event.projects.remarks,
+        'tags': event.projects.tags,
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
       };
@@ -198,7 +200,7 @@ Future<void> _convertProjectToSubProjects(
 
       // Fetch and copy associated tasks
       final tasksQuerySnapshot =
-          await taskRef.where('projectId', isEqualTo: event.projectId).get();
+          await taskRef.where('projectId', isEqualTo: event.projects.id).get();
 
       List<String> taskIds = [];
       for (var task in tasksQuerySnapshot.docs) {
@@ -227,7 +229,7 @@ Future<void> _convertProjectToSubProjects(
 
       // Fetch and copy associated tags
       final tagsQuerySnapshot =
-          await tagRef.where('projectId', isEqualTo: event.projectId).get();
+          await tagRef.where('projectId', isEqualTo: event.projects.id).get();
 
       List<String> tagIds = [];
       for (var tag in tagsQuerySnapshot.docs) {
@@ -245,8 +247,9 @@ Future<void> _convertProjectToSubProjects(
       await subProjectDoc.update({'tags': tagIds});
 
       // Fetch and copy associated remarks
-      final remarksQuerySnapshot =
-          await remarkRef.where('projectId', isEqualTo: event.projectId).get();
+      final remarksQuerySnapshot = await remarkRef
+          .where('projectId', isEqualTo: event.projects.id)
+          .get();
 
       List<String> remarkIds = [];
       for (var remark in remarksQuerySnapshot.docs) {
@@ -268,10 +271,10 @@ Future<void> _convertProjectToSubProjects(
 
       // Create project history entry
       final projectHistoryData = {
-        'projectId': event.projectId,
-        'changeType': 'subProjectCreated',
-        'changeDescription': 'Sub-project created: ${event.subProjectName}',
-        'userId': event.userId, // Assuming you are passing a userId
+        'projectId': event.projects.id,
+        'changeType': 'Sub-Project Created',
+        'changeDescription': 'Sub-project created',
+        'userId': 'event.userId',
         'createdAt': FieldValue.serverTimestamp(),
       };
       await projectHistoryRef.add(projectHistoryData);
@@ -279,14 +282,14 @@ Future<void> _convertProjectToSubProjects(
       // Handle siteLinks, payments, and dueDates (optional, if any)
       // Fetch and transfer Site Links
       final siteLinksQuerySnapshot = await siteLinkRef
-          .where('projectId', isEqualTo: event.projectId)
+          .where('projectId', isEqualTo: event.projects.id)
           .get();
 
       List<String> siteLinkIds = [];
       for (var siteLink in siteLinksQuerySnapshot.docs) {
         final siteLinkData = siteLink.data();
         final newSiteLinkData = {
-          'projectId': event.projectId,
+          'projectId': event.projects.id,
           'siteUrl': siteLinkData['siteUrl'],
           'userId': siteLinkData['userId'],
           'password': siteLinkData['password'],
@@ -303,14 +306,15 @@ Future<void> _convertProjectToSubProjects(
       }
 
       // Fetch and transfer Payments
-      final paymentsQuerySnapshot =
-          await paymentRef.where('projectId', isEqualTo: event.projectId).get();
+      final paymentsQuerySnapshot = await paymentRef
+          .where('projectId', isEqualTo: event.projects.id)
+          .get();
 
       List<String> paymentIds = [];
       for (var payment in paymentsQuerySnapshot.docs) {
         final paymentData = payment.data();
         final newPaymentData = {
-          'projectId': event.projectId,
+          'projectId': event.projects.id,
           'amountReceived': paymentData['amountReceived'],
           'receivedOn': paymentData['receivedOn'],
           'paymentMethod': paymentData['paymentMethod'],
@@ -328,14 +332,15 @@ Future<void> _convertProjectToSubProjects(
       }
 
       // Fetch and transfer Due Dates
-      final dueDatesQuerySnapshot =
-          await dueDateRef.where('projectId', isEqualTo: event.projectId).get();
+      final dueDatesQuerySnapshot = await dueDateRef
+          .where('projectId', isEqualTo: event.projects.id)
+          .get();
 
       List<String> dueDateIds = [];
       for (var dueDate in dueDatesQuerySnapshot.docs) {
         final dueDateData = dueDate.data();
         final newDueDateData = {
-          'projectId': event.projectId,
+          'projectId': event.projects.id,
           'dueDate': dueDateData['dueDate'],
           'missedCount': dueDateData['missedCount'],
           'cleared': dueDateData['cleared'],
@@ -364,5 +369,77 @@ Future<void> _convertProjectToSubProjects(
           'An error occurred while converting the project.'));
     }
   }
-*/
+
+  Future<void> _adminProjectsAssignTeamEvent(
+    AdminProjectsAssignTeamEvent event,
+    Emitter<AdminProjectsState> emit,
+  ) async {
+    emit(AdminProjectsTeamUpdateLoading());
+    try {
+      // Get the project reference from Firebase
+      var projectRef = FirebaseFirestore.instance
+          .collection('projects')
+          .doc(event.projectId);
+
+      // Get the current document data
+      var projectSnapshot = await projectRef.get();
+
+      // Check if the document exists
+      if (!projectSnapshot.exists) {
+        emit(
+          const AdminProjectsTeamUpdateFailure(
+            'Project not found. Please check the project ID.',
+          ),
+        );
+        return;
+      }
+
+      // Get the current developers or managers list
+      List<dynamic> currentUserIds = [];
+      if (event.isDeveloper) {
+        currentUserIds = projectSnapshot.data()?['developers'] ?? [];
+      } else {
+        currentUserIds = projectSnapshot.data()?['managers'] ?? [];
+      }
+
+      // Cast event.userIds to a list of strings (assuming event.userIds is iterable)
+      List<String> newUserIds = List<String>.from(event.userIds as Iterable);
+
+      // Filter out the userIds that are already in the list
+      newUserIds.removeWhere((userId) => currentUserIds.contains(userId));
+
+      if (newUserIds.isNotEmpty) {
+        // If there are new user IDs that are not already assigned, update the list
+        if (event.isDeveloper) {
+          await projectRef.update({
+            'developers': FieldValue.arrayUnion(newUserIds),
+          });
+        } else {
+          await projectRef.update({
+            'managers': FieldValue.arrayUnion(newUserIds),
+          });
+        }
+        emit(AdminProjectsTeamUpdateSuccess());
+      } else {
+        print('yaha aya aha');
+        emit(
+          const AdminProjectsTeamUpdateFailure(
+            'No new users to assign. Users are already assigned.',
+          ),
+        );
+      }
+    } catch (error) {
+      emit(
+        const AdminProjectsTeamUpdateFailure(
+          'Surprise! Developer assignment didn’t work. Try Again.',
+        ),
+      );
+    }
+  }
 }
+
+  // Update the managers list
+        // await projectRef.update({
+        //   'managers': FieldValue.arrayUnion(
+        //       event.userIds),
+        // });

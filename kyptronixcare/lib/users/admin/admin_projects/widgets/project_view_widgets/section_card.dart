@@ -9,6 +9,7 @@ class SectionCard extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
   final bool isDark;
+  final Widget? customWidget;
 
   const SectionCard({
     super.key,
@@ -17,6 +18,7 @@ class SectionCard extends StatelessWidget {
     required this.icon,
     required this.iconColor,
     required this.isDark,
+    this.customWidget,
   });
 
   @override
@@ -56,6 +58,8 @@ class SectionCard extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+                const Spacer(),
+                customWidget ?? const SizedBox(),
               ],
             ),
           ),
