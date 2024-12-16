@@ -73,7 +73,7 @@ class _TeamTabState extends State<TeamTab> {
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Text(
-                        'Unfortunately, no manager has been assigned yet.',
+                        'Unfortunately, no Manager has been assigned yet.',
                         style: theme.textTheme.bodyLarge!.copyWith(),
                       ),
                     ),

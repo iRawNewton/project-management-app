@@ -132,7 +132,7 @@ class _ProjectPageState extends State<ProjectPage>
                         children: [
                           GlassContainer(
                             child: Text(
-                              widget.project.id,
+                              widget.project.projectName,
                               style: GoogleFonts.poppins(
                                 fontSize: 28,
                                 fontWeight: FontWeight.bold,
@@ -268,11 +268,16 @@ class _ProjectPageState extends State<ProjectPage>
                         ),
                       ],
                     ),
-              TeamTab(
-                isDark: isDark,
-                developersDetails: widget.project.developersDetails,
-                managerDetails: widget.project.managersDetails,
-                projectId: widget.project.id,
+              Stack(
+                children: [
+                  TeamTab(
+                    isDark: isDark,
+                    developersDetails: widget.project.developersDetails,
+                    managerDetails: widget.project.managersDetails,
+                    projectId: widget.project.id,
+                  ),
+                  const Center(child: CircularProgressIndicator()),
+                ],
               ),
               TasksTab(isDark: isDark),
               FinanceTab(isDark: isDark),

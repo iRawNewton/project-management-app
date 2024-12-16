@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:stylish_dialog/stylish_dialog.dart';
 
 import '../../../../core/widgets/custom_appbar.dart';
 import '../../../model/projects_model.dart';
@@ -65,6 +66,8 @@ class _AdminProjectListviewState extends State<AdminProjectListview> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    StylishDialog? currentDialog;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return SafeArea(
       child: Scaffold(
         floatingActionButton: FloatingActionButton(
@@ -85,7 +88,73 @@ class _AdminProjectListviewState extends State<AdminProjectListview> {
               const CustomAppbar(title: 'Projects'),
               BlocConsumer<AdminProjectsBloc, AdminProjectsState>(
                 listener: (context, state) {
-                  // TODO: implement listener
+                  if (state is AdminProjectsGetList) {
+                    if (state.projects.isEmpty) {
+                      currentDialog = StylishDialog(
+                        context: context,
+                        controller: DialogController(
+                          listener: (status) {},
+                        ),
+                        alertType: StylishDialogType.WARNING,
+                        style: DefaultStyle(
+                          progressColor: Colors.teal,
+                          animationLoop: true,
+                          backgroundColor:
+                              isDarkMode ? Colors.black : Colors.white,
+                        ),
+                        dismissOnTouchOutside: true,
+                        title: Text(
+                          'Well, That’s Unexpected',
+                          style: theme.textTheme.bodyLarge!.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        content: Text(
+                          'No projects. Maybe it’s time to roll up your sleeves and make one.',
+                          style: theme.textTheme.bodyLarge,
+                          textAlign: TextAlign.center,
+                        ),
+                        cancelButton: TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: Text(
+                            'Back',
+                            style: theme.textTheme.bodyLarge!.copyWith(
+                              color: Colors.red,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        confirmButton: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                            ),
+                          ),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const AdminCreateProject(),
+                              ),
+                            );
+                          },
+                          child: Text(
+                            'Create Project',
+                            style: theme.textTheme.bodyLarge!.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      );
+                      currentDialog!.show();
+                    }
+                  }
                 },
                 // buildWhen: (previous, current) {
                 //   return previous is AdminProjectsReadEvent ||

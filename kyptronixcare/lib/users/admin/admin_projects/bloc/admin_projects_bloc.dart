@@ -146,6 +146,7 @@ class AdminProjectsBloc extends Bloc<AdminProjectsEvent, AdminProjectsState> {
       emit(AdminProjectsGetList(projects));
     } catch (error) {
       // Handle errors by emitting the failure state
+      print('7');
       emit(AdminProjectsCreateFailed(error.toString()));
     }
   }
@@ -154,7 +155,6 @@ class AdminProjectsBloc extends Bloc<AdminProjectsEvent, AdminProjectsState> {
     AdminProjectsConvertToSubProjectsEvent event,
     Emitter<AdminProjectsState> emit,
   ) async {
-    print('object');
     emit(AdminProjectsLoading());
 
     try {
@@ -164,8 +164,8 @@ class AdminProjectsBloc extends Bloc<AdminProjectsEvent, AdminProjectsState> {
           FirebaseFirestore.instance.collection('subProjects');
       final taskRef = FirebaseFirestore.instance.collection('tasks');
       final tagRef = FirebaseFirestore.instance.collection('tags');
-      final taskRemarkRef =
-          FirebaseFirestore.instance.collection('taskRemarks');
+      // final taskRemarkRef =
+      //     FirebaseFirestore.instance.collection('taskRemarks');
       final remarkRef = FirebaseFirestore.instance.collection('remarks');
       final projectHistoryRef =
           FirebaseFirestore.instance.collection('projectHistory');
@@ -375,6 +375,7 @@ class AdminProjectsBloc extends Bloc<AdminProjectsEvent, AdminProjectsState> {
     Emitter<AdminProjectsState> emit,
   ) async {
     emit(AdminProjectsTeamUpdateLoading());
+
     try {
       // Get the project reference from Firebase
       var projectRef = FirebaseFirestore.instance
@@ -402,8 +403,16 @@ class AdminProjectsBloc extends Bloc<AdminProjectsEvent, AdminProjectsState> {
         currentUserIds = projectSnapshot.data()?['managers'] ?? [];
       }
 
-      // Cast event.userIds to a list of strings (assuming event.userIds is iterable)
-      List<String> newUserIds = List<String>.from(event.userIds as Iterable);
+      // If currentUserIds is a single string, make it a list for consistency
+      if (currentUserIds is String) {
+        currentUserIds = [currentUserIds];
+      }
+
+      // Ensure event.userIds is iterable, even if it's a single string
+      List<String> newUserIds = [];
+
+      // Check if event.userIds is a single string or an iterable
+      newUserIds = [event.userIds]; // Wrap single string in a list
 
       // Filter out the userIds that are already in the list
       newUserIds.removeWhere((userId) => currentUserIds.contains(userId));
@@ -419,9 +428,9 @@ class AdminProjectsBloc extends Bloc<AdminProjectsEvent, AdminProjectsState> {
             'managers': FieldValue.arrayUnion(newUserIds),
           });
         }
+
         emit(AdminProjectsTeamUpdateSuccess());
       } else {
-        print('yaha aya aha');
         emit(
           const AdminProjectsTeamUpdateFailure(
             'No new users to assign. Users are already assigned.',
@@ -438,8 +447,9 @@ class AdminProjectsBloc extends Bloc<AdminProjectsEvent, AdminProjectsState> {
   }
 }
 
-  // Update the managers list
-        // await projectRef.update({
-        //   'managers': FieldValue.arrayUnion(
-        //       event.userIds),
-        // });
+/*
+remmy
+
+uiux
+sahil
+*/
