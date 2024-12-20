@@ -59,8 +59,6 @@ class MyApp extends StatelessWidget {
             case ThemeState.lightMode:
               theme = AppTheme.lightTheme;
               break;
-            default:
-              theme = AppTheme.lightTheme;
           }
           return MaterialApp(
             debugShowCheckedModeBanner: false,
