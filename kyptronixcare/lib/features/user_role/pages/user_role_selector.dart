@@ -4,6 +4,7 @@ import 'package:kyptronixcare/users/dev/dashboard/presentation/dev_dashboard.dar
 
 import '../../../users/admin/admin_authentication/presentation/admin_login.dart';
 import '../../../users/client/dashboard/presentation/client_dashboard.dart';
+import '../../../users/manager/manager_dashboard/presentation/manager_dashboard.dart';
 
 class UserRoleSelector extends StatefulWidget {
   const UserRoleSelector({super.key});
@@ -115,6 +116,13 @@ class _UserRoleSelectorState extends State<UserRoleSelector> {
                             context,
                             MaterialPageRoute(
                               builder: (context) => const ClientDashboard(),
+                            ),
+                          );
+                        } else {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ManagerDashboard(),
                             ),
                           );
                         }

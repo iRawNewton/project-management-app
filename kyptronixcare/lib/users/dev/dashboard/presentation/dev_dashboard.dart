@@ -7,6 +7,7 @@ import 'package:kyptronixcare/users/dev/drawer/dev_drawer.dart';
 
 import '../widgets/project_card.dart';
 import '../widgets/search_textfield.dart';
+import 'email_test.dart';
 
 class DevDashboardPage extends StatefulWidget {
   const DevDashboardPage({super.key});
@@ -70,6 +71,16 @@ class _DevDashboardPageState extends State<DevDashboardPage> {
               ),
               Column(
                 children: [
+                  ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => HeatmapWidget(),
+                          ),
+                        );
+                      },
+                      child: const Text('data')),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
